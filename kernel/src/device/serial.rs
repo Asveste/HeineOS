@@ -110,6 +110,9 @@ impl fmt::Write for ComPort {
     /// Write a string to the COM port by iterating over each byte in the string and writing it using `write_byte()`.
     fn write_str(&mut self, s: &str) -> fmt::Result {
         // TODO: Write the string using write_byte()
+        for byte in s.bytes() {
+            self.write_byte(byte);
+        }
         Ok(())
     }
 }
