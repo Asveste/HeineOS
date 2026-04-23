@@ -17,6 +17,7 @@
 #![allow(unreachable_code)]
 #![allow(unused_variables)]
 
+use core::fmt::Write;
 use log::{debug, error, info};
 use uefi::mem::memory_map::MemoryMapOwned;
 use crate::device::framebuffer::Framebuffer;
@@ -82,6 +83,8 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     unsafe { load_gdt(); }
 
     // TODO: Call your demo code here.
+    COM1.lock().write_byte('H' as u8);
+    COM1.lock().write_str("Hello World!").unwrap();
 
     // Endless loop, as we cannot return from main().
     loop {}
