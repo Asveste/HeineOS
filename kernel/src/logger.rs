@@ -30,6 +30,21 @@ impl log::Log for Logger {
     /// Print a log record to the serial port.
     fn log(&self, record: &Record) {
         // TODO: Write the log message to the serial port.
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
+        let mut com1 = serial::COM1.lock();
+
+        let _ = writeln!(
+            com1,
+            "[{:>5}] {:>3} {}:{}: {}",
+            "0.000",
+            level_abbreviation(record.level()),
+            record.file().unwrap_or("?"),
+            record.line().unwrap_or(0),
+            record.args()
+        );
     }
 
     /// Flush the logger.

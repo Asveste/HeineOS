@@ -86,6 +86,12 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     COM1.lock().write_byte('H' as u8);
     COM1.lock().write_str("Hello World!").unwrap();
 
+    log::trace!("trace message");
+    log::debug!("debug message");
+    log::info!("info message");
+    log::warn!("warn message");
+    log::error!("error message");
+
     // Endless loop, as we cannot return from main().
     loop {}
 }
