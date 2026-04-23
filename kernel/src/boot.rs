@@ -84,13 +84,26 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     // TODO: Call your demo code here.
     COM1.lock().write_byte('H' as u8);
-    COM1.lock().write_str("Hello World!").unwrap();
+    COM1.lock().write_byte('\n' as u8);
+    COM1.lock().write_str("Hello World!\n").unwrap();
+
+    let s = COM1.lock();
+    drop(s);
+    let s = COM1.lock();
+    drop(s);
+    let s = COM1.lock();
+    drop(s);
 
     log::trace!("trace message");
     log::debug!("debug message");
     log::info!("info message");
     log::warn!("warn message");
     log::error!("error message");
+
+    let s = COM1.lock();
+    drop(s);
+
+    COM1.lock().write_str("Hello World!\n").expect("TODO: panic message");
 
     // Endless loop, as we cannot return from main().
     loop {}
