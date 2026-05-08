@@ -153,10 +153,10 @@ impl Terminal {
             }
         }
 
-        /*if self.pos.1 >= self.rows {
+        if self.pos.1 >= self.rows {
             framebuffer.scroll_up(font_8x8::CHAR_HEIGHT);
             self.pos.1 = self.rows - 1;
-        }*/
+        }
 
         Self::draw_cursor(self.pos, &mut framebuffer);
     }

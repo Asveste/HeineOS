@@ -5,6 +5,7 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-07
  * License: GPLv3
  */
+use core::ptr::copy;
 use crate::device::font_8x8;
 use crate::multiboot;
 
@@ -163,6 +164,26 @@ impl Framebuffer {
     /// Scroll the framebuffer content up by the specified number of lines.
     /// The freed space at the bottom is cleared to black.
     pub fn scroll_up(&mut self, lines: usize) {
-        todo!("framebuffer::scroll_up() not implemented yet");
+        //todo!("framebuffer::scroll_up() not implemented yet");
+        if lines == 0 {
+            return;
+        }
+
+        if lines >= self.height {
+            self.clear();
+            return;
+        }
+
+        let bytes_total = self.pitch * self.height;
+        let bytes_to_scroll = self.pitch * lines;
+        let bytes_to_copy = bytes_total - bytes_to_scroll;
+
+        let dst = self.address as *mut u8;
+        let src = unsafe {dst.add(bytes_to_scroll)};
+
+        unsafe {
+            copy(src, dst, bytes_to_copy);
+            dst.add(bytes_to_copy).write_bytes(0, bytes_to_scroll);
+        }
     }
 }

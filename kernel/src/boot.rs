@@ -105,8 +105,11 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     COM1.lock().write_str("Hello World!\n").expect("TODO: panic message");
 
-    for _ in 0..5 {
-        println!("Hello, World!");
+    for a in 0..500 {
+        if a % 2 == 0 {
+            println!("Hello, World!");
+        } else { println!("Hello, {}!", a) }
+
     }
 
     // Endless loop, as we cannot return from main().
