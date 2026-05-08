@@ -5,7 +5,7 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-14
  * License: GPLv3
  */
-
+use core::ops::BitAnd;
 use bitflags::bitflags;
 use crate::device::cpu::IoPort;
 use crate::device::key::{KeyEvent, KeyModifiers};
@@ -141,7 +141,22 @@ impl Keyboard {
     /// If a complete key event has been decoded, it is returned.
     /// If no byte is available or the key event is not complete yet, None is returned.
     fn try_read_next_byte(&mut self) -> Option<KeyEvent> {
-        todo!("keyboard::try_read_next_byte() not implemented yet");
+        //todo!("keyboard::try_read_next_byte() not implemented yet");
+        let cp = &mut self.control_port;
+        let b = unsafe { cp.inb() };
+
+        if b & 0x01 == 0 {
+            return None;
+        }
+
+        let dp = &mut self.data_port;
+        let data = unsafe { dp.inb() };
+
+        if self.decode_byte(data) {
+            return Some(self.gather);
+        } else {
+            return None
+        }
     }
 
     /// Poll the keyboard for the next key event (press or release).
@@ -150,14 +165,25 @@ impl Keyboard {
     /// CAUTION: This function must not be used anymore, once the keyboard interrupt handler is active,
     /// because it directly reads from the keyboard controller and thus interferes with the interrupt handler.
     pub fn poll_key_event(&mut self) -> KeyEvent {
-        todo!("keyboard::poll_key_event() not implemented yet");
+        //todo!("keyboard::poll_key_event() not implemented yet");
+        loop {
+            if let Some(key_event) = self.try_read_next_byte() {
+                return key_event;
+            }
+        }
     }
 
     /// Poll the keyboard for the next key press event.
     /// This function blocks until a key press event has been received and decoded,
     /// discarding any key release events.
     pub fn poll_key_press(&mut self) -> KeyEvent {
-        todo!("keyboard::poll_key_press() not implemented yet");
+        //todo!("keyboard::poll_key_press() not implemented yet");
+        loop {
+            let event = self.poll_key_event();
+            if event.pressed() {
+                return event;
+            }
+        }
     }
 
     /// Set the repeat rate of the keyboard (determined by the speed and delay).

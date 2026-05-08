@@ -20,6 +20,7 @@
 use core::fmt::Write;
 use log::{debug, error, info};
 use uefi::mem::memory_map::MemoryMapOwned;
+use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
 use crate::device::terminal;
@@ -105,13 +106,16 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     COM1.lock().write_str("Hello World!\n").expect("TODO: panic message");
 
-    for a in 0..500 {
+    for a in 0..100 {
         if a % 2 == 0 {
-            println!("Hello, World!");
-        } else { println!("Hello, {}!", a) }
-
+            println!("Hello, {}!", a);
+        } else { 
+            println!("Hello, World!") 
+        }
     }
-
+    
+    text_demo();
+    keyboard_demo();
     // Endless loop, as we cannot return from main().
     loop {}
 }
