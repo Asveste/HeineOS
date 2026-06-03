@@ -86,7 +86,7 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     // TODO: Call your demo code here.
     COM1.lock().write_byte('H' as u8);
     COM1.lock().write_byte('\n' as u8);
-    COM1.lock().write_str("Hello World!\n").unwrap();
+    COM1.lock().write_str("Hello World!!\n").unwrap();
 
     let s = COM1.lock();
     drop(s);
