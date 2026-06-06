@@ -25,6 +25,7 @@ use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
 use crate::device::terminal;
 use crate::logger::Logger;
+extern crate alloc;
 
 #[macro_use]
 mod device;
@@ -32,6 +33,8 @@ mod library;
 mod logger;
 mod multiboot;
 mod demo;
+
+mod allocator;
 
 unsafe extern "C" {
     fn load_gdt();

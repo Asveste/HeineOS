@@ -6,8 +6,9 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-13
  */
 
-use alloc::alloc::{GlobalAlloc, Layout};
 use crate::allocator::global::{align_up, Locked};
+use alloc::alloc::{GlobalAlloc, Layout};
+use core::ptr::null_mut;
 
 /// A simple bump allocator that allocates memory in a linear fashion.
 pub struct BumpAllocator {
@@ -30,7 +31,11 @@ impl BumpAllocator {
 
     /// Initialize the bump allocator.
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
-        todo!("bump::init() is not implemented yet.")
+        //todo!("bump::init() is not implemented yet.")
+        self.heap_start = heap_start;
+        self.heap_end = heap_start + heap_size;
+        self.next = heap_start;
+        self.allocations = 0;
     }
 
     /// Dump free memory for debugging purposes.
@@ -40,12 +45,23 @@ impl BumpAllocator {
 
     /// Allocate memory of the given size and alignment.
     pub unsafe fn alloc(&mut self, layout: Layout) -> *mut u8 {
-        todo!("bump::alloc() is not implemented yet.")
+        //todo!("bump::alloc() is not implemented yet.")
+        let alloc_start = align_up(self.next, layout.align());
+        let alloc_end = alloc_start.saturating_add(layout.size());
+        if alloc_end <= self.heap_end {
+            self.next = alloc_end;
+            self.allocations += 1;
+            alloc_start as *mut u8
+        } else {
+            null_mut()
+        }
     }
 
     /// Deallocate memory (not supported by bump allocator).
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
-        todo!("bump::dealloc() is not implemented yet.")
+        //todo!("bump::dealloc() is not implemented yet.")
+        let _ = ptr;
+        let _ = layout;
     }
 }
 
