@@ -20,7 +20,10 @@
 use core::fmt::Write;
 use log::{debug, error, info};
 use uefi::mem::memory_map::MemoryMapOwned;
+use crate::allocator::global::init_allocator;
+use crate::consts::{heap_start, HEAP_SIZE};
 use crate::demo::lesson1::{keyboard_demo, text_demo};
+use crate::demo::lesson2::{heap_demo};
 use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
 use crate::device::terminal;
@@ -35,6 +38,8 @@ mod multiboot;
 mod demo;
 
 mod allocator;
+
+mod consts;
 
 unsafe extern "C" {
     fn load_gdt();
@@ -119,6 +124,10 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     
     text_demo();
     keyboard_demo();
+
+    init_allocator(heap_start(), HEAP_SIZE);
+    heap_demo();
+
     // Endless loop, as we cannot return from main().
     loop {}
 }

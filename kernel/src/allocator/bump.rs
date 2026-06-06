@@ -6,7 +6,7 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-13
  */
 
-use crate::allocator::global::{align_up, Locked};
+use crate::allocator::global::{align_up, dump_free_list, Locked};
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::ptr::null_mut;
 
@@ -40,7 +40,11 @@ impl BumpAllocator {
 
     /// Dump free memory for debugging purposes.
     pub fn dump_free_list(&mut self) {
-        todo!("bump::dump_free_list() is not implemented yet.")
+        //todo!("bump::dump_free_list() is not implemented yet.")
+        println!("Bump allocator:");
+        println!("\tHeap_start: {:#x}, Heap end: {:#x}", self.heap_start, self.heap_end);
+        println!("\tFree block(s):");
+        println!("\t\tBlock at {:#x} with size {}", self.next, self.heap_end - self.next);
     }
 
     /// Allocate memory of the given size and alignment.

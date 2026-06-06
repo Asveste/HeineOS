@@ -14,11 +14,86 @@ use crate::device::keyboard::KEYBOARD;
 use crate::device::speaker;
 use crate::device::speaker::SPEAKER;
 use crate::device::terminal::terminal;
+use crate::allocator::global::dump_free_list;
 
 /// A simple heap demo, allocating and freeing memory on the heap.
 /// The allocator state is dumped before and after each operation.
 pub fn heap_demo() {
-    todo!("lesson2::heap_demo() is not implemented yet.")
+    //todo!("lesson2::heap_demo() is not implemented yet.")
+    println!("");
+
+    println!("Heap Demo:");
+    println!("Demo 1/2: Allocate structs using 'Box'");
+    println!("--------------------------------------");
+    println!("");
+
+    dump_free_list();
+
+    #[derive(Debug)]
+    struct S {
+        a: usize,
+        b: usize,
+    }
+
+    let s1 = Box::new(S { a: 1, b: 2 });
+    let s2 = Box::new(S { a: 3, b: 4 });
+
+    println!("");
+    println!("s1 = {:?}", s1);
+    println!("s2 = {:?}", s2);
+    println!("");
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+
+    let mut s = KEYBOARD.lock();
+    loop {
+        let k = s.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(s);
+
+    print!("\n");
+    println!("");
+
+    println!("Heap Demo:");
+    println!("Demo 2/2: Allocate a Vec of three structs");
+    println!("-----------------------------------------");
+    println!("");
+
+    dump_free_list();
+
+    let mut v: Vec<S> = Vec::new();
+    v.push(S { a: 5, b: 6 });
+    v.push(S { a: 7, b: 8 });
+    v.push(S { a: 9, b: 0 });
+
+    println!("");
+    for i in 0..v.len() {
+        println!("vec[{}] = {:?}", i, v[i]);
+    }
+    println!("");
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+
+    let mut s2 = KEYBOARD.lock();
+    loop {
+        let k = s2.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(s2);
+
+    print!("\n");
+    println!("");
 }
 
 /// A demo that plays songs via the PC speaker.
