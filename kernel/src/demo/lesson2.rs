@@ -20,7 +20,7 @@ use crate::allocator::global::dump_free_list;
 /// The allocator state is dumped before and after each operation.
 pub fn heap_demo() {
     //todo!("lesson2::heap_demo() is not implemented yet.")
-    println!("");
+    /*println!("");
 
     println!("Heap Demo:");
     println!("Demo 1/2: Allocate structs using 'Box'");
@@ -91,6 +91,123 @@ pub fn heap_demo() {
         };
     }
     drop(s2);
+
+    print!("\n");
+    println!("");*/
+
+    println!("");
+
+    #[derive(Debug)]
+    struct S {
+        a: usize,
+        b: usize,
+    }
+
+    println!("Heap Demo:");
+    println!("Demo 1/4: Allocate structs using 'Box'");
+    println!("--------------------------------------");
+    println!("");
+
+    dump_free_list();
+
+    let s1 = Box::new(S { a: 1, b: 2 });
+    let s2 = Box::new(S { a: 3, b: 4 });
+
+    println!("");
+    println!("s1 = {:?}", s1);
+    println!("s2 = {:?}", s2);
+    println!("");
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+    let mut keyboard = KEYBOARD.lock();
+    loop {
+        let k = keyboard.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(keyboard);
+
+    print!("\n");
+    println!("");
+
+    println!("Demo 2/4: Free allocated structs");
+    println!("--------------------------------");
+    println!("");
+
+    drop(s1);
+    drop(s2);
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+    let mut keyboard = KEYBOARD.lock();
+    loop {
+        let k = keyboard.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(keyboard);
+
+    print!("\n");
+    println!("");
+
+    println!("Demo 3/4: Allocate a Vec of three structs");
+    println!("-----------------------------------------");
+    println!("");
+
+    dump_free_list();
+
+    let mut v: Vec<S> = Vec::new();
+    v.push(S { a: 5, b: 6 });
+    v.push(S { a: 7, b: 8 });
+    v.push(S { a: 9, b: 0 });
+
+    println!("");
+    for (i, item) in v.iter().enumerate() {
+        println!("vec[{}] = {:?}", i, item);
+    }
+    println!("");
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+    let mut keyboard = KEYBOARD.lock();
+    loop {
+        let k = keyboard.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(keyboard);
+
+    print!("\n");
+    println!("");
+
+    println!("Demo 4/4: Free allocated Vec");
+    println!("----------------------------");
+    println!("");
+
+    drop(v);
+
+    dump_free_list();
+
+    println!("");
+    print!("Press Enter to continue...");
+    let mut keyboard = KEYBOARD.lock();
+    loop {
+        let k = keyboard.poll_key_press();
+        if k.scancode() == Some(Scancode::Enter) {
+            break;
+        };
+    }
+    drop(keyboard);
 
     print!("\n");
     println!("");
