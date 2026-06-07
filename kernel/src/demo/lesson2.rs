@@ -215,5 +215,8 @@ pub fn heap_demo() {
 
 /// A demo that plays songs via the PC speaker.
 pub fn speaker_demo() {
-    todo!("lesson2::speaker_demo() is not implemented yet.")
+    //todo!("lesson2::speaker_demo() is not implemented yet.")
+    let mut speaker = SPEAKER.lock();
+    speaker.play(400, 10);
+    drop(speaker);
 }

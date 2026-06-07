@@ -23,9 +23,10 @@ use uefi::mem::memory_map::MemoryMapOwned;
 use crate::allocator::global::init_allocator;
 use crate::consts::{heap_start, HEAP_SIZE};
 use crate::demo::lesson1::{keyboard_demo, text_demo};
-use crate::demo::lesson2::{heap_demo};
+use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
+use crate::device::speaker::tetris;
 use crate::device::terminal;
 use crate::logger::Logger;
 extern crate alloc;
@@ -127,6 +128,9 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     init_allocator(heap_start(), HEAP_SIZE);
     heap_demo();
+    
+    speaker_demo();
+    tetris();
 
     // Endless loop, as we cannot return from main().
     loop {}

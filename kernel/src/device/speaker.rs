@@ -89,24 +89,55 @@ impl Speaker {
 
     /// Play a specific frequency for a given amount of time (milliseconds).
     pub fn play(&mut self, frequency: usize, duration: usize) {
-        todo!("Speaker::play() is not implemented yet.")
+        //todo!("Speaker::play() is not implemented yet.")
+        let divisor = PIT_FREQUENCY / frequency;
+        let low = divisor as u8;
+        let high = (divisor >> 8) as u8;
+
+        unsafe {
+            self.pit_ctrl_port.outb(0b1011_0110);
+            self.pit_data2_port.outb(low);
+            self.pit_data2_port.outb(high);
+        }
+
+        self.on();
+        self.delay(duration);
+        self.off();
     }
 
     /// Turn on the speaker.
     /// The played tone is dependent on counter 2 of the PIT.
     pub fn on(&mut self) {
-        todo!("Speaker::on() is not implemented yet.")
+        //todo!("Speaker::on() is not implemented yet.")
+        let before = unsafe { self.ppi_port.inb() };
+        let after = before | 0b0000_0011;
+        unsafe {
+            self.ppi_port.outb(after);
+        }
     }
 
     /// Turn off the speaker.
     pub fn off(&mut self) {
-        todo!("Speaker::off() is not implemented yet.")
+        //todo!("Speaker::off() is not implemented yet.")
+        let before = unsafe { self.ppi_port.inb() };
+        let after = before & !0b0000_0011;
+        unsafe {
+            self.ppi_port.outb(after);
+        }
     }
 
     /// Return the current value of the PIT counter (16-bit).
     /// Used by `delay()` to check if the counter has reached 0 or has been reloaded.
     fn read_counter(&mut self) -> u16 {
-        todo!("Speaker::read_counter() is not implemented yet.")
+        //todo!("Speaker::read_counter() is not implemented yet.")
+        unsafe {
+            self.pit_ctrl_port.outb(0b0000_0000);
+        }
+
+        let low = unsafe { self.pit_data0_port.inb() };
+        let high = unsafe { self.pit_data0_port.inb() };
+
+        (low as u16) | ((high as u16) << 8)
     }
 
     /// Wait for a given amount of time in milliseconds using counter 0 of the PIT.
@@ -114,7 +145,25 @@ impl Speaker {
     /// This means that the counter will count down from 1193 to 0 and then reload itself.
     /// Counting from 1193 to 0 takes 1ms.
     fn delay(&mut self, duration: usize) {
-        todo!("Speaker::delay() is not implemented yet.")
+        //todo!("Speaker::delay() is not implemented yet.")
+        unsafe {
+            self.pit_ctrl_port.outb(0b0011_0100);
+            self.pit_data0_port.outb(0xA9);
+            self.pit_data0_port.outb(0x04);
+        }
+
+        let mut ms = 0;
+        let mut value_before = self.read_counter();
+
+        while ms < duration {
+            let value_current = self.read_counter();
+
+            if value_current > value_before {
+                ms += 1;
+            }
+
+            value_before = value_current;
+        }
     }
 }
 
