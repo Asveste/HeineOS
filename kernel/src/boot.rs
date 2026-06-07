@@ -26,7 +26,7 @@ use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
-use crate::device::speaker::tetris;
+use crate::device::speaker::{still_alive, tetris};
 use crate::device::terminal;
 use crate::logger::Logger;
 extern crate alloc;
@@ -130,7 +130,7 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     heap_demo();
     
     speaker_demo();
-    tetris();
+    still_alive();
 
     // Endless loop, as we cannot return from main().
     loop {}
