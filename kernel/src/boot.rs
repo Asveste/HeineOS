@@ -93,15 +93,17 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     unsafe { load_gdt(); }
 
     // TODO: Call your demo code here.
-    COM1.lock().write_byte('H' as u8);
-    COM1.lock().write_byte('\n' as u8);
-    COM1.lock().write_str("Hello World!!\n").unwrap();
+    init_allocator(heap_start(), HEAP_SIZE);
 
-    let s = COM1.lock();
-    drop(s);
-    let s = COM1.lock();
-    drop(s);
-    let s = COM1.lock();
+    COM1.lock().write_byte('H' as u8);
+    COM1.lock().write_byte('H' as u8);
+    COM1.lock().write_byte('U' as u8);
+    COM1.lock().write_byte('\n' as u8);
+    COM1.lock().write_str("Hello World!\n").unwrap();
+
+    println!("Hello, World!");
+
+    /*let s = COM1.lock();
     drop(s);
 
     log::trace!("trace message");
@@ -109,28 +111,14 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     log::info!("info message");
     log::warn!("warn message");
     log::error!("error message");
-
-    let s = COM1.lock();
-    drop(s);
-
-    COM1.lock().write_str("Hello World!\n").expect("TODO: panic message");
-
-    for a in 0..100 {
-        if a % 2 == 0 {
-            println!("Hello, {}!", a);
-        } else { 
-            println!("Hello, World!") 
-        }
-    }
     
     text_demo();
     keyboard_demo();
 
-    init_allocator(heap_start(), HEAP_SIZE);
     heap_demo();
     
     speaker_demo();
-    still_alive();
+    still_alive();*/
 
     // Endless loop, as we cannot return from main().
     loop {}

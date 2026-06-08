@@ -7,7 +7,6 @@
  */
 use crate::device::key::Scancode;
 use crate::device::keyboard::KEYBOARD;
-use crate::device::terminal::{print, terminal};
 
 /// A simple text demo, displaying formatted numbers.
 pub fn text_demo() {

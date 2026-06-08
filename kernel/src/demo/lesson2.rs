@@ -6,15 +6,12 @@
  * License: GPLv3
  */
 
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-use crate::allocator;
+use crate::allocator::global::dump_free_list;
 use crate::device::key::Scancode;
 use crate::device::keyboard::KEYBOARD;
-use crate::device::speaker;
 use crate::device::speaker::SPEAKER;
-use crate::device::terminal::terminal;
-use crate::allocator::global::dump_free_list;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 /// A simple heap demo, allocating and freeing memory on the heap.
 /// The allocator state is dumped before and after each operation.

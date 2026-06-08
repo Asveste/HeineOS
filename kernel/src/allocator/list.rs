@@ -6,10 +6,9 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-13
  */
 
+use crate::allocator::global::{align_up, Locked};
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::ptr::null_mut;
-use log::info;
-use crate::allocator::global::{align_up, Locked};
 
 /// Header of a free block in the list allocator.
 struct ListNode {

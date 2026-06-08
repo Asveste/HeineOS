@@ -5,11 +5,10 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-14
  * License: GPLv3
  */
-use core::ops::BitAnd;
-use bitflags::bitflags;
 use crate::device::cpu::IoPort;
 use crate::device::key::{KeyEvent, KeyModifiers};
 use crate::library::spinlock::Spinlock;
+use bitflags::bitflags;
 
 /// The global keyboard instance protected by a spinlock.
 /// This instance can be used to poll key events from the keyboard. Process the key event
