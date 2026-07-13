@@ -6,9 +6,11 @@
  * License: GPLv3
  */
 use crate::device::cpu::IoPort;
-use crate::device::key::{KeyEvent, KeyModifiers};
+use crate::device::key::{KeyEvent, KeyEventQueue, KeyModifiers};
 use crate::library::spinlock::Spinlock;
 use bitflags::bitflags;
+use crate::library::once::Once;
+use crate::interrupt::isr::ISR;
 
 /// The global keyboard instance protected by a spinlock.
 /// This instance can be used to poll key events from the keyboard. Process the key event
@@ -123,6 +125,35 @@ const BREAK_BIT: u8 = 0x80;
 const PREFIX1: u8 = 0xe0;
 /// Second prefix byte for certain special keys.
 const PREFIX2: u8 = 0xe1;
+
+/// Global key event buffer.
+/// Each key is pushed to this queue by the interrupt handler and can be retrieved at a later time by the user.
+/// Wrapped inside a Once, because the Queue cannot be created inside a const function.
+static KEYBOARD_BUFFER: Once<KeyEventQueue> = Once::new();
+
+/// Global access to the key buffer.
+/// Usage: let key_buffer = keyboard::keyboard_buffer();
+///        let key = key_buffer.pop_key_event();
+pub fn keyboard_buffer() -> &'static KeyEventQueue {
+    KEYBOARD_BUFFER.init(KeyEventQueue::new)
+}
+
+/// Interrupt handler struct for the keyboard.
+struct KeyboardISR;
+
+impl ISR for KeyboardISR {
+    /// Keyboard interrupt handler.
+    /// This function reads the next byte from the keyboard and decodes it into a key event.
+    fn trigger(&self) {
+        todo!("KeyboardISR::trigger() not implemented yet!");
+    }
+}
+
+/// Register the keyboard interrupt handler with the interrupt dispatcher
+/// and enable keyboard interrupts at the PIC.
+pub fn plugin() {
+    todo!("Keyboard::plugin() not implemented yet!");
+}
 
 impl Keyboard {
     /// Create a new keyboard driver instance.

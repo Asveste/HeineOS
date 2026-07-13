@@ -42,6 +42,8 @@ mod allocator;
 
 mod consts;
 
+mod interrupt;
+
 unsafe extern "C" {
     fn load_gdt();
 }
