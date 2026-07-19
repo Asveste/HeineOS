@@ -17,6 +17,7 @@
 #![allow(unreachable_code)]
 #![allow(unused_variables)]
 
+use core::arch::asm;
 use core::fmt::Write;
 use log::{debug, error, info};
 use uefi::mem::memory_map::MemoryMapOwned;
@@ -28,6 +29,7 @@ use crate::device::framebuffer::Framebuffer;
 use crate::device::serial::COM1;
 use crate::device::speaker::{still_alive, tetris};
 use crate::device::terminal;
+use crate::interrupt::idt::idt;
 use crate::logger::Logger;
 extern crate alloc;
 
@@ -104,6 +106,12 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     COM1.lock().write_str("Hello World!\n").unwrap();
 
     println!("Hello, World!");
+    
+    idt().load();
+
+    unsafe {
+        asm!("int 100");
+    }
 
     /*let s = COM1.lock();
     drop(s);
