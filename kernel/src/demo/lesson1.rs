@@ -6,7 +6,7 @@
  * License: GPLv3
  */
 use crate::device::key::Scancode;
-use crate::device::keyboard::KEYBOARD;
+use crate::device::keyboard;
 
 /// A simple text demo, displaying formatted numbers.
 pub fn text_demo() {
@@ -27,12 +27,15 @@ pub fn keyboard_demo() {
     //todo!("lesson1::keyboard_demo() not implemented yet");
     println!("Keyboard Demo:");
     println!("Press keys on your keyboard. Press 'ESC' to exit the demo.");
-    let mut s = KEYBOARD.lock();
+    let key_buffer = keyboard::keyboard_buffer();
+
     loop {
-        let k = s.poll_key_event();
-        if k.scancode() == Some(Scancode::Escape) {
+        let key = key_buffer.poll_key_event();
+
+        if key.pressed() && key.scancode() == Some(Scancode::Escape) {
             break;
-        };
-        println!("Key: {:?}", k);
+        }
+
+        println!("Key: {:?}", key);
     }
 }

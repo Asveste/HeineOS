@@ -8,10 +8,10 @@
 
 use crate::allocator::global::dump_free_list;
 use crate::device::key::Scancode;
-use crate::device::keyboard::KEYBOARD;
 use crate::device::speaker::SPEAKER;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use crate::device::keyboard;
 
 /// A simple heap demo, allocating and freeing memory on the heap.
 /// The allocator state is dumped before and after each operation.
@@ -92,6 +92,8 @@ pub fn heap_demo() {
     print!("\n");
     println!("");*/
 
+    let key_buffer = keyboard::keyboard_buffer();
+    
     println!("");
 
     #[derive(Debug)]
@@ -119,14 +121,12 @@ pub fn heap_demo() {
 
     println!("");
     print!("Press Enter to continue...");
-    let mut keyboard = KEYBOARD.lock();
     loop {
-        let k = keyboard.poll_key_press();
+        let k = key_buffer.poll_key_press();
         if k.scancode() == Some(Scancode::Enter) {
             break;
         };
     }
-    drop(keyboard);
 
     print!("\n");
     println!("");
@@ -142,14 +142,12 @@ pub fn heap_demo() {
 
     println!("");
     print!("Press Enter to continue...");
-    let mut keyboard = KEYBOARD.lock();
     loop {
-        let k = keyboard.poll_key_press();
+        let k = key_buffer.poll_key_press();
         if k.scancode() == Some(Scancode::Enter) {
             break;
         };
     }
-    drop(keyboard);
 
     print!("\n");
     println!("");
@@ -175,14 +173,12 @@ pub fn heap_demo() {
 
     println!("");
     print!("Press Enter to continue...");
-    let mut keyboard = KEYBOARD.lock();
     loop {
-        let k = keyboard.poll_key_press();
+        let k = key_buffer.poll_key_press();
         if k.scancode() == Some(Scancode::Enter) {
             break;
         };
     }
-    drop(keyboard);
 
     print!("\n");
     println!("");
@@ -197,14 +193,12 @@ pub fn heap_demo() {
 
     println!("");
     print!("Press Enter to continue...");
-    let mut keyboard = KEYBOARD.lock();
     loop {
-        let k = keyboard.poll_key_press();
+        let k = key_buffer.poll_key_press();
         if k.scancode() == Some(Scancode::Enter) {
             break;
         };
     }
-    drop(keyboard);
 
     print!("\n");
     println!("");

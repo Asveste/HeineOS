@@ -26,10 +26,13 @@ use crate::consts::{heap_start, HEAP_SIZE};
 use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::device::framebuffer::Framebuffer;
+use crate::device::pic::PIC;
 use crate::device::serial::COM1;
 use crate::device::speaker::{still_alive, tetris};
-use crate::device::terminal;
+use crate::device::{cpu, keyboard, terminal};
+use crate::interrupt::dispatcher::init_interrupt_dispatcher;
 use crate::interrupt::idt::idt;
+use crate::library::input::read_char;
 use crate::logger::Logger;
 extern crate alloc;
 
@@ -108,9 +111,25 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     println!("Hello, World!");
     
     idt().load();
+    init_interrupt_dispatcher();
 
-    unsafe {
-        asm!("int 100");
+    {
+        let mut pic = PIC.lock();
+        pic.init();
+    }
+
+    keyboard::plugin();
+    cpu::enable_int();
+
+    loop {
+        let key = read_char();
+
+        if key == '\r' {
+            print!("{}", '\n');
+            //break;
+        }
+
+        print!("{}", key);
     }
 
     /*let s = COM1.lock();

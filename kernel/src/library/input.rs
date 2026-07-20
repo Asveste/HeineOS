@@ -12,7 +12,16 @@ use crate::device::keyboard::keyboard_buffer;
 /// If the key pressed does not correspond to an ASCII character (e.g., function keys),
 /// the function will continue to wait until a valid ASCII character is pressed.
 pub fn read_char() -> char {
-    todo!("input::read_char() not implemented yet!");
+    //todo!("input::read_char() not implemented yet!");
+    let key_buffer = keyboard_buffer();
+
+    loop {
+        let key = key_buffer.poll_key_press();
+
+        if let Some(key) = key.ascii() {
+            return key;
+        }
+    }
 }
 
 /// Wait until the 'Return' (Enter) key is pressed.

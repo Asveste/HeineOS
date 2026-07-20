@@ -82,7 +82,15 @@ pub unsafe fn unlock_int_vectors() {
 /// Every interrupt is routed here, if not specified otherwise in the IDT.
 pub fn dispatch_interrupt(vector: u8, stack_frame: InterruptStackFrame, error_code: Option<u64>) {
     //todo!("dispatch_interrupt() not implemented yet!");
-    log::info!("interrupt vector {:?}", vector);
+    let handled = {
+        let vectors = INT_VECTORS.lock();
+        vectors.report(vector)
+    };
+
+    if !handled {
+        log::error!("No ISR registered for interrupt vector {}", vector);
+        panic!("Unhandled interrupt vector {}", vector);
+    }
 }
 
 /// The Interrupt vector map. Each ISR is registered in this map.
@@ -118,11 +126,24 @@ impl IntVectors {
     /// Register an ISR.
     /// Interrupts get disabled while registering the ISR to avoid race conditions with `dispatch_interrupt()`.
     pub fn register(vector: InterruptVector, isr: Box<dyn ISR>) {
-        todo!("IntVectors::register() not implemented yet!");
+        //todo!("IntVectors::register() not implemented yet!")
+        cpu::without_interrupts(||{
+            let mut vectors = INT_VECTORS.lock();
+
+            vectors.map[vector as usize] = Some(isr);
+        });
     }
 
     /// Check if an ISR is registered for `vector`. If so, call it.
     pub fn report(&self, vector: u8) -> bool {
-        todo!("IntVectors::report() not implemented yet!");
+        //todo!("IntVectors::report() not implemented yet!");
+        if let Some(isr) = self.map[vector as usize].as_ref() {
+            isr.trigger();
+            true
+        } else {
+            log::error!("interrupt vector {} not found", vector);
+            panic!("interrupt vector {} not found", vector);
+            //false
+        }
     }
 }

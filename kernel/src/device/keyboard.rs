@@ -5,16 +5,19 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-14
  * License: GPLv3
  */
+use alloc::boxed::Box;
 use crate::device::cpu::IoPort;
 use crate::device::key::{KeyEvent, KeyEventQueue, KeyModifiers};
 use crate::library::spinlock::Spinlock;
 use bitflags::bitflags;
+use crate::device::pic::{Irq, PIC};
+use crate::interrupt::dispatcher::{IntVectors, InterruptVector};
 use crate::library::once::Once;
 use crate::interrupt::isr::ISR;
 
 /// The global keyboard instance protected by a spinlock.
 /// This instance can be used to poll key events from the keyboard. Process the key event
-pub static KEYBOARD: Spinlock<Keyboard> = Spinlock::new(Keyboard::new());
+static KEYBOARD: Spinlock<Keyboard> = Spinlock::new(Keyboard::new());
 
 /// Driver struct for the PS/2 keyboard.
 /// The keyboard may send multiple bytes for a single key event (e.g. with modifier keys).
@@ -145,14 +148,41 @@ impl ISR for KeyboardISR {
     /// Keyboard interrupt handler.
     /// This function reads the next byte from the keyboard and decodes it into a key event.
     fn trigger(&self) {
-        todo!("KeyboardISR::trigger() not implemented yet!");
+        //todo!("KeyboardISR::trigger() not implemented yet!");
+        //log::info!("keyboard ISR triggered");
+
+        let mut keyboard = KEYBOARD.lock();
+
+        loop {
+            let status_byte = unsafe { keyboard.control_port.inb() };
+            let status = KeyboardStatus::from_bits_truncate(status_byte);
+
+            if !status.contains(KeyboardStatus::OUTPUT_BUFFER_FULL) {
+                break;
+            }
+
+            if status.contains(KeyboardStatus::AUXILIARY_DEVICE) {
+                unsafe {
+                    keyboard.data_port.inb();
+                }
+                continue;
+            }
+
+            if let Some(key_event) = keyboard.try_read_next_byte() {
+                keyboard_buffer().push_key_event(key_event);
+            }
+        }
     }
 }
 
 /// Register the keyboard interrupt handler with the interrupt dispatcher
 /// and enable keyboard interrupts at the PIC.
 pub fn plugin() {
-    todo!("Keyboard::plugin() not implemented yet!");
+    //todo!("Keyboard::plugin() not implemented yet!");
+    IntVectors::register(InterruptVector::Keyboard, Box::new(KeyboardISR));
+
+    let mut s = PIC.lock();
+    s.allow(Irq::Keyboard);
 }
 
 impl Keyboard {
@@ -194,7 +224,7 @@ impl Keyboard {
     ///
     /// CAUTION: This function must not be used anymore, once the keyboard interrupt handler is active,
     /// because it directly reads from the keyboard controller and thus interferes with the interrupt handler.
-    pub fn poll_key_event(&mut self) -> KeyEvent {
+    fn poll_key_event(&mut self) -> KeyEvent {
         //todo!("keyboard::poll_key_event() not implemented yet");
         loop {
             if let Some(key_event) = self.try_read_next_byte() {
@@ -206,7 +236,7 @@ impl Keyboard {
     /// Poll the keyboard for the next key press event.
     /// This function blocks until a key press event has been received and decoded,
     /// discarding any key release events.
-    pub fn poll_key_press(&mut self) -> KeyEvent {
+    fn poll_key_press(&mut self) -> KeyEvent {
         //todo!("keyboard::poll_key_press() not implemented yet");
         loop {
             let event = self.poll_key_event();

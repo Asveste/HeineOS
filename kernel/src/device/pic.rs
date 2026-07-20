@@ -109,24 +109,73 @@ impl Pic {
 
             // Disable all interrupt lines
             self.data1.outb(0xfb); // Allow cascading interrupts
+            // Binary: 1111 1011 (see bit 2 being zero)
             cpu::io_wait();
-            self.data2.outb(0xff); // Disable all interrupts
+            self.data2.outb(0xff); // Disable all interrupts (for slave)
             cpu::io_wait();
         }
     }
 
     /// Enable an IRQ to be forwarded to the processor by the PIC.
     pub fn allow (&mut self, irq: Irq) {
-        todo!("Pic::allow() not implemented yet.");
+        //todo!("Pic::allow() not implemented yet.");
+        let irq_number = irq as u8;
+        let local_irq_number = irq_number % 8;
+
+        let bit_mask = 1u8 << local_irq_number;
+        if irq_number < 8 {
+            unsafe {
+                let current_mask = self.data1.inb();
+                self.data1.outb(current_mask & !bit_mask);
+            }
+        } else {
+            unsafe {
+                let current_mask = self.data2.inb();
+                // This works because cascade is enabled by default
+                self.data2.outb(current_mask & !bit_mask);
+            }
+        }
     }
 
     /// Disable an IRQ to be forwarded to the processor by the PIC.
     pub fn forbid (&mut self, irq: Irq) {
-        todo!("Pic::forbid() not implemented yet.");
+        //todo!("Pic::forbid() not implemented yet.");
+        let irq_number = irq as u8;
+        let local_irq_number = irq_number % 8;
+
+        let bit_mask = 1u8 << local_irq_number;
+        if irq_number < 8 {
+            unsafe {
+                let current_mask = self.data1.inb();
+                self.data1.outb(current_mask | bit_mask);
+            }
+        } else {
+            unsafe {
+                let current_mask = self.data2.inb();
+                // This works because cascade is enabled by default
+                self.data2.outb(current_mask | bit_mask);
+            }
+        }
     }
 
     /// Get the state (enabled/disabled) of an IRQ in the PIC.
     pub fn status (&mut self, irq: Irq) -> bool {
-        todo!("Pic::status() not implemented yet.");
+        //todo!("Pic::status() not implemented yet.");
+        let irq_number = irq as u8;
+        let local_irq_number = irq_number % 8;
+
+        if irq_number < 8 {
+            unsafe {
+                let current_mask = self.data1.inb();
+                let raw_bit = (current_mask >> local_irq_number) & 1;
+                raw_bit == 0
+            }
+        } else {
+            unsafe {
+                let current_mask = self.data2.inb();
+                let raw_bit = (current_mask >> local_irq_number) & 1;
+                raw_bit == 0
+            }
+        }
     }
 }
