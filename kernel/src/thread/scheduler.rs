@@ -10,7 +10,7 @@
 use alloc::boxed::Box;
 use core::fmt::Display;
 use core::{fmt, ptr};
-use crate::allocator;
+use crate::{allocator, thread};
 use crate::library::once::Once;
 use crate::library::queue::LinkedQueue;
 use crate::library::spinlock::Spinlock;
@@ -110,12 +110,36 @@ impl Scheduler {
 
     /// Yield the CPU and switch to the next thread in the ready queue.
     pub fn yield_cpu(&self) {
-        todo!("Scheduler::yield_cpu() is not implemented yet.");
+        //todo!("Scheduler::yield_cpu() is not implemented yet.");
+        let mut state = self.state.lock();
+
+        let mut current = state.active_thread.take().unwrap();
+
+        let next = match state.ready_queue.dequeue() {
+            Some(next) => next,
+            None => {
+                state.active_thread = Some(current);
+                return;
+            }
+        };
+
+        let current_thread = ptr::from_mut(current.as_mut());
+
+        state.ready_queue.enqueue(current);
+        state.active_thread = Some(next);
+
+        let next_thread = ptr::from_mut(state.active_thread.as_mut().unwrap().as_mut());
+
+        unsafe {
+            Thread::switch(current_thread, next_thread);
+        }
     }
 
     /// Kill the thread with the given ID by removing it from the ready queue.
     pub fn kill(&self, to_kill_id: usize) {
-        todo!("Scheduler::kill() is not implemented yet.");
+        //todo!("Scheduler::kill() is not implemented yet.");
+        let mut state = self.state.lock();
+        state.ready_queue.remove(|thread| thread.id() == to_kill_id);
     }
 }
 

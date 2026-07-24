@@ -13,6 +13,7 @@ use crate::thread::scheduler::scheduler;
 /// Switch to the next thread in an endless loop.
 /// This function is run in its own thread to ensure that the scheduler always has at least one thread running.
 pub fn idle_thread() {
+    //println!("idle_thread");
     loop {
         scheduler().yield_cpu();
     }

@@ -69,7 +69,23 @@ impl<T> LinkedQueue<T> {
     pub fn remove<F>(&mut self, f: F) -> bool
     where F: Fn(&T) -> bool
     {
-        todo!("LinkedQueue::remove() is not implemented yet.")
+        //todo!("LinkedQueue::remove() is not implemented yet.")
+        let mut current = &mut self.head;
+
+        loop {
+            let matches = match current.as_ref() {
+                Some(node) => f(&node.data),
+                None => return false,
+            };
+
+            if matches {
+                let next = current.as_mut().unwrap().next.take();
+                *current = next;
+                return true;
+            }
+
+            current = &mut current.as_mut().unwrap().next;
+        }
     }
 }
 
