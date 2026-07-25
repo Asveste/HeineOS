@@ -49,6 +49,8 @@ const TIMER_INTERRUPT_INTERVAL_MS: usize = 1;
 /// The interval at which the spinner should change to the next state
 const SPINNER_INTERVAL_MS: usize = 250;
 
+const THREAD_SWITCH_INTERVAL_MS: usize = 10;
+
 /// Global timer instance
 static TIMER: Once<Timer> = Once::new();
 
@@ -100,30 +102,33 @@ impl ISR for TimerISR {
             core::sync::atomic::Ordering::Relaxed,
         ) + self.interval_ms;
 
-        const SPINNER_INTERVAL_MS: usize = 250;
+        // Update the spinner every 250 ms.
+        if current_time % SPINNER_INTERVAL_MS == 0 {
+            let spinner_step = current_time / SPINNER_INTERVAL_MS;
+            let spinner_index = (spinner_step - 1) % SPINNER_CHARS.len();
+            let spinner_char = SPINNER_CHARS[spinner_index];
 
-        if current_time % SPINNER_INTERVAL_MS != 0 {
-            return;
+            if let Some(mut fb) = terminal::framebuffer().try_lock() {
+                let x = fb
+                    .width()
+                    .saturating_sub(font_8x8::CHAR_WIDTH);
+
+                fb.draw_char(
+                    spinner_char,
+                    x,
+                    0,
+                    framebuffer::WHITE,
+                    framebuffer::BLACK,
+                );
+            }
         }
 
-        let spinner_step = current_time / SPINNER_INTERVAL_MS;
-        let spinner_index = (spinner_step - 1) % SPINNER_CHARS.len();
-        let spinner_char = SPINNER_CHARS[spinner_index];
+        if current_time % THREAD_SWITCH_INTERVAL_MS == 0 {
+            unsafe {
+                interrupt::dispatcher::unlock_int_vectors();
+            }
 
-        if let Some(mut framebuffer) = terminal::framebuffer().try_lock() {
-            let x = framebuffer
-                .width()
-                .saturating_sub(font_8x8::CHAR_WIDTH);
-
-            let y = 0;
-
-            framebuffer.draw_char(
-                spinner_char,
-                x,
-                y,
-                framebuffer::WHITE,
-                framebuffer::BLACK,
-            );
+            scheduler().yield_cpu();
         }
     }
 }

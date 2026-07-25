@@ -30,7 +30,7 @@ use crate::device::framebuffer::Framebuffer;
 use crate::device::pic::PIC;
 use crate::device::serial::COM1;
 use crate::device::speaker::{still_alive, tetris};
-use crate::device::{cpu, keyboard, terminal};
+use crate::device::{cpu, keyboard, pit, terminal};
 use crate::device::terminal::terminal;
 use crate::interrupt::dispatcher::init_interrupt_dispatcher;
 use crate::interrupt::idt::idt;
@@ -125,6 +125,7 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     }
 
     keyboard::plugin();
+    pit::plugin();
     cpu::enable_int();
 
     /*loop {

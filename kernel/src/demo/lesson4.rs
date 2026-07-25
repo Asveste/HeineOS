@@ -96,6 +96,6 @@ fn thread_entry() {
             scheduler().exit();
         }
 
-        scheduler().yield_cpu();
+        //scheduler().yield_cpu();
     }
 }
