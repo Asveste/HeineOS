@@ -9,9 +9,8 @@
 use alloc::boxed::Box;
 use core::sync::atomic::AtomicUsize;
 use crate::device::cpu::IoPort;
-use crate::device::framebuffer;
 use crate::device::pic::{Irq, PIC};
-use crate::device::terminal::framebuffer;
+use crate::device::{font_8x8, framebuffer, terminal};
 use crate::interrupt;
 use crate::interrupt::dispatcher::{IntVectors, InterruptVector};
 use crate::interrupt::isr::ISR;
@@ -47,6 +46,9 @@ const NANOSECONDS_PER_TICK: usize = 1_000_000_000 / TIMER_FREQUENCY;
 /// The interval at which the timer should generate interrupts (1 ms).
 const TIMER_INTERRUPT_INTERVAL_MS: usize = 1;
 
+/// The interval at which the spinner should change to the next state
+const SPINNER_INTERVAL_MS: usize = 250;
+
 /// Global timer instance
 static TIMER: Once<Timer> = Once::new();
 
@@ -59,7 +61,22 @@ static SPINNER_CHARS: &[char] = &['|', '/', '-', '\\'];
 
 /// Register the timer interrupt handler.
 pub fn plugin() {
-    todo!("pit::plugin() is not yet implemented");
+    //todo!("pit::plugin() is not yet implemented");
+    TIMER.init(|| {
+        let mut timer = Timer::new();
+        timer.set_interrupt_interval(TIMER_INTERRUPT_INTERVAL_MS);
+        timer
+    });
+
+    IntVectors::register(
+        InterruptVector::Pit,
+        Box::new(TimerISR {
+            interval_ms: TIMER_INTERRUPT_INTERVAL_MS
+        })
+    );
+
+    let mut s = PIC.lock();
+    s.allow(Irq::Timer);
 }
 
 /// Represents the programmable interval timer.
@@ -77,7 +94,37 @@ impl ISR for TimerISR {
     /// Handle the timer interrupt.
     /// This function updates the system time and triggers a context switch every 10 ms.
     fn trigger(&self) {
-        todo!("pit::trigger() is not yet implemented");
+        //todo!("pit::trigger() is not yet implemented");
+        let current_time = SYSTEM_TIME.fetch_add(
+            self.interval_ms,
+            core::sync::atomic::Ordering::Relaxed,
+        ) + self.interval_ms;
+
+        const SPINNER_INTERVAL_MS: usize = 250;
+
+        if current_time % SPINNER_INTERVAL_MS != 0 {
+            return;
+        }
+
+        let spinner_step = current_time / SPINNER_INTERVAL_MS;
+        let spinner_index = (spinner_step - 1) % SPINNER_CHARS.len();
+        let spinner_char = SPINNER_CHARS[spinner_index];
+
+        if let Some(mut framebuffer) = terminal::framebuffer().try_lock() {
+            let x = framebuffer
+                .width()
+                .saturating_sub(font_8x8::CHAR_WIDTH);
+
+            let y = 0;
+
+            framebuffer.draw_char(
+                spinner_char,
+                x,
+                y,
+                framebuffer::WHITE,
+                framebuffer::BLACK,
+            );
+        }
     }
 }
 
@@ -92,6 +139,23 @@ impl Timer {
 
     /// Set the timer interrupt interval in milliseconds.
     pub fn set_interrupt_interval(&mut self, interval_ms: usize) {
-        todo!("pit::set_interrupt_interval() is not yet implemented");
+        //todo!("pit::set_interrupt_interval() is not yet implemented");
+        let counter_value = (TIMER_FREQUENCY * interval_ms) / 1000;
+
+        assert!(
+            counter_value > 0 && counter_value <= u16::MAX as usize,
+            "PIT interval is out of range"
+        );
+
+        let counter_value = counter_value as u16;
+
+        let low_byte = counter_value as u8;
+        let high_byte = (counter_value >> 8) as u8;
+
+        unsafe {
+            self.control_port.outb(0x36);
+            self.data_port0.outb(low_byte);
+            self.data_port0.outb(high_byte);
+        }
     }
 }

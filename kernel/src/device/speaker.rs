@@ -10,6 +10,7 @@
  */
 
 use crate::device::cpu::IoPort;
+use crate::device::pit;
 use crate::library::spinlock::Spinlock;
 
 pub static SPEAKER: Spinlock<Speaker> = Spinlock::new(Speaker::new());
@@ -194,7 +195,7 @@ pub fn tetris() {
     speaker.play(1056, 500);
     speaker.play(880, 500);
     speaker.play(880, 500);
-    speaker.delay(250);
+    pit::wait(250);
     speaker.play(1188, 500);
     speaker.play(1408, 250);
     speaker.play(1760, 500);
@@ -213,7 +214,7 @@ pub fn tetris() {
     speaker.play(1056, 500);
     speaker.play(880, 500);
     speaker.play(880, 500);
-    speaker.delay(500);
+    pit::wait(500);
     speaker.play(1320, 500);
     speaker.play(990, 250);
     speaker.play(1056, 250);
@@ -235,7 +236,7 @@ pub fn tetris() {
     speaker.play(1056, 500);
     speaker.play(880, 500);
     speaker.play(880, 500);
-    speaker.delay(250);
+    pit::wait(250);
     speaker.play(1188, 500);
     speaker.play(1408, 250);
     speaker.play(1760, 500);
@@ -254,7 +255,7 @@ pub fn tetris() {
     speaker.play(1056, 500);
     speaker.play(880, 500);
     speaker.play(880, 500);
-    speaker.delay(500);
+    pit::wait(500);
     speaker.play(660, 1000);
     speaker.play(528, 1000);
     speaker.play(594, 1000);
@@ -1387,7 +1388,7 @@ pub fn still_alive() {
 
     for &(frequency, duration) in STILL_ALIVE {
         if frequency == 0 {
-            speaker.delay(duration);
+            pit::wait(duration);
         } else {
             speaker.play(frequency, duration);
         }
