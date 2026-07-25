@@ -7,6 +7,7 @@
  */
 use log::info;
 use crate::coroutine::coroutine::Coroutine;
+use crate::device::pit::wait;
 use crate::device::terminal::{terminal, Terminal};
 use crate::thread::scheduler;
 use crate::thread::scheduler::scheduler;
@@ -84,18 +85,10 @@ fn thread_entry() {
             t.set_pos(1, 4 + scheduler().get_active_tid());
             print_terminal!(&mut *t, "Thread [{}]: {}", tid, count);
         }
+        wait(100);
 
-        if tid == 0 && count > 999 && count < 1999 {
-            scheduler().kill(1);
-            scheduler().kill(2);
-        } else if tid == 0 && count > 1999 {
-            {
-                let mut terminal = terminal().lock();
-                terminal.clear();
-            }
+        if count >= 333 {
             scheduler().exit();
         }
-
-        //scheduler().yield_cpu();
     }
 }

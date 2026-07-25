@@ -16,5 +16,6 @@ pub fn idle_thread() {
     //println!("idle_thread");
     loop {
         scheduler().yield_cpu();
+        scheduler().cleanup_terminated_threads();
     }
 }
