@@ -199,14 +199,27 @@ impl Terminal {
 
     /// Helper function for the PeanutGB Game Boy Emulator.
     /// Draws a single horizontal line at y = line with the given pixels buffer.
-    pub fn draw_gameboy_line(&mut self, pixels: &[u8], line: usize, palette: &[u32]) {
+    pub fn draw_gameboy_line(&mut self, pixels: &[u8], line: usize, palette: &[u32], screen_height: usize, scale: usize) {
         let mut framebuffer = self.framebuffer.lock();
+
+        let scaled_width = pixels.len() * scale;
+        let scaled_height = screen_height * scale;
+
+        let x_offset = framebuffer.width().saturating_sub(scaled_width) / 2;
+        let y_offset = framebuffer.height().saturating_sub(scaled_height) / 2;
 
         for x in 0..pixels.len() {
             let color_index = pixels[x] & 0b11;
             let color = palette[color_index as usize];
 
-            framebuffer.draw_pixel(x, line, color);
+            for scale_y in 0..scale {
+                for scale_x in 0..scale {
+                    let target_x = x_offset + x * scale + scale_x;
+                    let target_y = y_offset + line * scale + scale_y;
+
+                    framebuffer.draw_pixel(target_x, target_y, color);
+                }
+            }
         }
     }
 }

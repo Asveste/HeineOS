@@ -135,6 +135,9 @@ const MS_PER_FRAME: usize = 1000 / TARGET_FRAME_RATE;
 /// The original Game Boy screen resolution (160x144 pixels).
 const GB_SCREEN_RES: (usize, usize) = (160, 144);
 
+/// Display resolution scale.
+const SCALE: usize = 2;
+
 /// The color palette used for rendering.
 /// The Game Boy supports 4 shades of gray, represented as 32-bit ARGB colors in this array.
 static PALETTE: &[u32] = &[
@@ -184,7 +187,7 @@ unsafe extern "C" fn lcd_draw_line(_gb: *mut c_void, pixels: *const u8, line: u8
 
     let mut terminal = terminal().lock();
 
-    terminal.draw_gameboy_line(pixels, line as usize, PALETTE);
+    terminal.draw_gameboy_line(pixels, line as usize, PALETTE, GB_SCREEN_RES.1, SCALE);
 }
 
 /// Handle emulation errors.
