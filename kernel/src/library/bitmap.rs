@@ -95,13 +95,86 @@ impl Bitmap {
     /// Returns `Some(Bitmap)` if the data represents a valid and supported BMP image.
     /// Returns `None` if the data is not a valid or supported BMP image.
     pub fn from_bytes(data: &[u8]) -> Option<Bitmap> {
+        // Make sure the complete header exists
+        if data.len() < size_of::<BitmapFileHeader>() {
+            return None;
+        }
+
         // Get a reference to the BMP file header inside the given byte slice
         let header_slice = &data[..size_of::<BitmapFileHeader>()];
         let header = unsafe {
             &*(header_slice.as_ptr() as *const BitmapFileHeader)
         };
 
-        todo!("Bitmap::from_bytes() is not yet implemented");
+        //todo!("Bitmap::from_bytes() is not yet implemented");
+
+        let width = header.info_header.width;
+        let height = header.info_header.height;
+        let data_offset = header.data_offset as usize;
+        let bits_per_pixel = header.info_header.bits_per_pixel;
+        let compression = header.info_header.compression;
+
+        // Validate signature, dimensions, format and compression
+        // return None for unsupported values
+        if header.signature != *b"BM" { // b"BM" = [0x42, 0x4d]
+            return None;
+        }
+        if header.info_header.header_size != 40 {
+            return None;
+        }
+        if width <= 0 || height <= 0 {
+            return None;
+        }
+        if header.info_header.color_planes != 1 {
+            return None;
+        }
+        if bits_per_pixel != 24 {
+            return None;
+        }
+        if compression != Compression::None {
+            return None;
+        }
+
+        // Convert validated dimensions to usize
+        let width = width as usize;
+        let height = height as usize;
+
+        // Calculate unpadded and padded row sizes
+        let bytes_per_row = width * 3; // 3 because each pixel takes 3 bytes
+        let row_stride = ((bytes_per_row + 3) / 4) * 4; // rounds upward to the next multiple of four
+
+        // Offset itself not inside the header
+        if data_offset < size_of::<BitmapFileHeader>() {
+            return None;
+        }
+
+        // Verify that all required pixel bytes exist
+        let pixel_data_size = row_stride.checked_mul(height)?;
+        let required_size = data_offset.checked_add(pixel_data_size)?;
+
+        if required_size > data.len() {
+            return None;
+        }
+
+        // Decode every pixel
+        let mut pixel_data = Vec::with_capacity(width * height);
+
+        for y in 0..height {
+            let source_y = height - 1 - y;
+            let row_start = data_offset + source_y * row_stride;
+
+            for x in 0..width {
+                let pixel_index = row_start + x * 3;
+
+                let blue = data[pixel_index];
+                let green = data[pixel_index + 1];
+                let red = data[pixel_index + 2];
+
+                pixel_data.push(color(red, green, blue, 255));
+            }
+        }
+
+        Some(Bitmap { header: *header, pixel_data, })
     }
 
     /// Get the width of the bitmap in pixels.

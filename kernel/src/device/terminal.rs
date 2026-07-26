@@ -12,6 +12,7 @@ use crate::device::{font_8x8, framebuffer};
 use crate::device::framebuffer::Framebuffer;
 use crate::library::once::Once;
 use crate::library::spinlock::Spinlock;
+use crate::library::bitmap::Bitmap;
 
 /// Global terminal instance protected by a spinlock.
 /// This instance is initialized once during kernel startup.
@@ -175,6 +176,25 @@ impl Terminal {
         let y = pos.1 * font_8x8::CHAR_HEIGHT;
 
         framebuffer.draw_char(' ', x, y, DEFAULT_BG_COLOR, DEFAULT_BG_COLOR);
+    }
+
+    /// Draw a bitmap image at the specified (x, y) coordinates.
+    /// If the bitmap does not fully fit within the framebuffer, it is clipped.
+    pub fn draw_bitmap(&mut self, bitmap: &Bitmap, x: usize, y: usize) {
+        let mut framebuffer = self.framebuffer.lock();
+        framebuffer.draw_bitmap(bitmap, x, y);
+    }
+
+    /// Draw a bitmap image at the center of the terminal instance.
+    /// If the bitmap does not fully fit within the framebuffer, it is clipped.
+    pub fn draw_bitmap_centered(&mut self, bitmap: &Bitmap) {
+        let mut framebuffer = self.framebuffer.lock();
+
+        let x = framebuffer.width().saturating_sub(bitmap.width() as usize) / 2;
+
+        let y = framebuffer.height().saturating_sub(bitmap.height() as usize) / 2;
+
+        framebuffer.draw_bitmap(bitmap, x, y);
     }
 }
 

@@ -36,6 +36,7 @@ use crate::device::terminal::terminal;
 use crate::filesystem::tarfs;
 use crate::interrupt::dispatcher::init_interrupt_dispatcher;
 use crate::interrupt::idt::idt;
+use crate::library::bitmap;
 use crate::library::input::read_char;
 use crate::logger::Logger;
 use crate::multiboot::ModuleTag;
@@ -158,6 +159,12 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     let text = core::str::from_utf8(&buffer[..bytes_read]).unwrap();
     println!("{}", text);
+
+    let bm = bitmap::Bitmap::read_from_file("heine.bmp")
+        .expect("Failed to read bitmap file")
+        .expect("Invalid or unsupported bitmap");
+
+    terminal().lock().draw_bitmap_centered(&bm);
 
     // Endless loop, as we cannot return from main().
     loop {}

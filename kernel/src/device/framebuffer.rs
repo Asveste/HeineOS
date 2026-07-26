@@ -5,8 +5,10 @@
  *         Fabian Ruhland, Heinrich Heine University Duesseldorf, 2026-01-07
  * License: GPLv3
  */
+use core::cmp::max;
 use core::ptr::copy;
 use crate::device::font_8x8;
+use crate::library::bitmap::Bitmap;
 use crate::multiboot;
 
 /// Represents a linear framebuffer for graphics output.
@@ -158,6 +160,59 @@ impl Framebuffer {
         for c in str.chars() {
             self.draw_char(c, x, y, fg_color, bg_color);
             x += font_8x8::CHAR_WIDTH;
+        }
+    }
+
+    /// Draw a bitmap image at the specified (x, y) coordinates.
+    /// If the bitmap does not fully fit within the framebuffer, it is clipped.
+    pub fn draw_bitmap(&mut self, bitmap: &Bitmap, x: usize, y: usize) {
+        // Original bitmap dimensions
+        let bmp_width = bitmap.width() as usize;
+        let bmp_height = bitmap.height() as usize;
+
+        // Clip the bitmap to the framebuffer dimensions
+        let target_width = if x + bmp_width > self.width {
+            max(self.width - x, 0)
+        } else {
+            bmp_width
+        };
+
+        let target_height = if y + bmp_height > self.height {
+            max(self.height - y, 0)
+        } else {
+            bmp_height
+        };
+
+        //todo!("framebuffer::draw_bitmap() is not yet implemented");
+
+        // The bitmap is completely outside the framebuffer.
+        if target_width == 0 || target_height == 0 {
+            return;
+        }
+
+        let pixels = bitmap.pixel_data();
+
+        for row in 0..target_height {
+            // Start of this row in the bitmap.
+            let source_offset = row * bmp_width;
+            let source = unsafe {
+                pixels.as_ptr().add(source_offset)
+            };
+
+            // Start of this row in the framebuffer.
+            let destination_offset =
+                (y + row) * self.pitch + x * size_of::<u32>();
+
+            let destination = unsafe {
+                (self.address as *mut u8)
+                    .add(destination_offset)
+                    .cast::<u32>()
+            };
+
+            // Copy target_width u32 pixels.
+            unsafe {
+                copy(source, destination, target_width);
+            }
         }
     }
 
