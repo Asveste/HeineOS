@@ -8,7 +8,7 @@
 
 use core::fmt::Write;
 use log::{Metadata, Record};
-use crate::device::serial;
+use crate::device::{pit, serial};
 
 /// A simple logger implementing the `log::Log` trait, writing to the serial port (COM1).
 pub struct Logger {}
@@ -34,12 +34,17 @@ impl log::Log for Logger {
             return;
         }
 
+        let time = pit::system_time();
+        let seconds = time / 1000;
+        let milliseconds = time % 1000;
+
         let mut com1 = serial::COM1.lock();
 
         let _ = writeln!(
             com1,
-            "[{:>5}] {:>3} {}:{}: {}",
-            "0.000",
+            "[{}.{:03}] {:>3} {}:{}: {}",
+            seconds,
+            milliseconds,
             level_abbreviation(record.level()),
             record.file().unwrap_or("?"),
             record.line().unwrap_or(0),

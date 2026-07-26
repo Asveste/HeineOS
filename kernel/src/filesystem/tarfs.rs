@@ -193,7 +193,7 @@ impl TarFs {
     /// If the provided file handle is invalid, an `FsError::InvalidHandle` error is returned.
     pub fn size(&self, handle: FileHandle) -> Result<usize, FsError> {
         //todo!("tarfs::size() is not yet implemented");
-        let mut open_handles = self.open_handles.lock();
+        let open_handles = self.open_handles.lock();
 
         let open_file = match open_handles.get(&handle) {
             Some(file) => file,

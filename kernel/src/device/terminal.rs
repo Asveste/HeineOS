@@ -196,6 +196,19 @@ impl Terminal {
 
         framebuffer.draw_bitmap(bitmap, x, y);
     }
+
+    /// Helper function for the PeanutGB Game Boy Emulator.
+    /// Draws a single horizontal line at y = line with the given pixels buffer.
+    pub fn draw_gameboy_line(&mut self, pixels: &[u8], line: usize, palette: &[u32]) {
+        let mut framebuffer = self.framebuffer.lock();
+
+        for x in 0..pixels.len() {
+            let color_index = pixels[x] & 0b11;
+            let color = palette[color_index as usize];
+
+            framebuffer.draw_pixel(x, line, color);
+        }
+    }
 }
 
 // Implement the `fmt::Write` trait for the Terminal to support formatted output.

@@ -7,8 +7,14 @@
  */
 
 use alloc::vec::Vec;
-use core::ffi::{c_char, c_int, c_size_t, c_void, CStr};
-use log::error;
+use core::ffi::{c_char, c_int, c_void, CStr};
+//use core::ffi::{c_size_t};
+use log::{debug, error, info};
+use crate::device::key::Scancode;
+use crate::device::keyboard::keyboard_buffer;
+use crate::device::pit;
+use crate::device::terminal::terminal;
+use crate::filesystem::tarfs::filesystem;
 use crate::library::once::Once;
 
 unsafe extern "C" {
@@ -55,7 +61,7 @@ unsafe extern "C" {
     /// Get the RAM size of the currently loaded ROM in the PeanutGB emulator.
     /// The RAM size is written to the given pointer `ram_size`.
     /// A return value of 0 indicates success.
-    fn gb_get_save_size_s(gb: *mut c_void, ram_size: *mut c_size_t) -> c_int;
+    fn gb_get_save_size_s(gb: *mut c_void, ram_size: *mut usize) -> c_int;
 }
 
 /// Bitmask for the joypad buttons. See `gb_get_joypad_ptr` for more details.
@@ -145,7 +151,8 @@ static ROM: Once<Vec<u8>> = Once::new();
 /// This is a callback function for the PeanutGB emulator.
 unsafe extern "C" fn gb_rom_read(_gb: *mut c_void, addr: u32) -> u8 {
     // TODO: Read a byte from the ROM file.
-    0
+    //info!("ROM read at 0x{:04x}", addr);
+    ROM.get().unwrap().get(addr as usize).copied().unwrap_or(0)
 }
 
 /// Read a byte from the save RAM at the offset specified by `addr`.
@@ -171,6 +178,13 @@ unsafe extern "C" fn gb_cart_ram_write(_gb: *mut c_void, addr: u32, val: u8) {
 /// The other bits are used for Game Boy Color emulation, but are ignored in this implementation.
 unsafe extern "C" fn lcd_draw_line(_gb: *mut c_void, pixels: *const u8, line: u8) {
     // TODO: Render the line to the framebuffer
+    let pixels = unsafe {
+        core::slice::from_raw_parts(pixels, GB_SCREEN_RES.0)
+    };
+
+    let mut terminal = terminal().lock();
+
+    terminal.draw_gameboy_line(pixels, line as usize, PALETTE);
 }
 
 /// Handle emulation errors.
@@ -182,5 +196,88 @@ unsafe extern "C" fn gb_error(_gb: *mut c_void, error: c_int, addr: u16) {
 
 /// Play the given ROM file using the Peanut-GB emulator.
 pub fn play(rom_path: &str) {
-    todo!("peanut-gb demo is not yet implemented");
+    //todo!("peanut-gb demo is not yet implemented");
+    let fs = filesystem();
+    let file = fs.open(rom_path).expect("Couldn't open rom");
+    let size = fs.size(file).expect("Couldn't get file size");
+
+    let mut rom_data = alloc::vec![0u8; size];
+    fs.read(file, &mut rom_data).expect("Couldn't read rom");
+
+    ROM.init(|| rom_data);
+
+    // Ask C how much memory its emulator state requires
+    let gb_struct_size = unsafe { gb_size() };
+
+    // Allocate that memory
+    let mut gb_data = Vec::<u8>::with_capacity(gb_struct_size as usize);
+
+    // Get a pointer that can be passed to C
+    let gb_ptr = gb_data.as_mut_ptr().cast::<c_void>();
+
+    let result = unsafe {
+        gb_init(gb_ptr, gb_rom_read, gb_cart_ram_read, gb_cart_ram_write, gb_error, core::ptr::null())
+    };
+
+    let init_result = GbInitError::try_from(result).unwrap_or(GbInitError::UnknownError);
+
+    if init_result != GbInitError::NoError {
+        panic!("Failed to initialize PeanutGB: {:?}", init_result);
+    }
+
+    let joypad_ptr = unsafe { gb_get_joypad_ptr(gb_ptr) };
+
+    if joypad_ptr.is_null() {
+        panic!("PeanutGB returned a null joypad pointer");
+    }
+
+    unsafe {
+        gb_init_lcd(gb_ptr, lcd_draw_line as *const () as *const c_void);
+    }
+
+    loop {
+        let frame_start = pit::system_time();
+
+        while let Some(event) = keyboard_buffer().pop_key_event() {
+            let button = match event.scancode() {
+                Some(Scancode::Up) => Some(JoypadButton::Up),
+                Some(Scancode::Down) => Some(JoypadButton::Down),
+                Some(Scancode::Left) => Some(JoypadButton::Left),
+                Some(Scancode::Right) => Some(JoypadButton::Right),
+
+                Some(Scancode::X) => Some(JoypadButton::A),
+                Some(Scancode::Y) => Some(JoypadButton::B),
+
+                Some(Scancode::Space) => Some(JoypadButton::Select),
+                Some(Scancode::Enter) => Some(JoypadButton::Start),
+
+                _ => None,
+            };
+
+            if let Some(button) = button {
+                let mask = button as u8;
+
+                unsafe {
+                    if event.pressed() {
+                        // 0 means pressed
+                        *joypad_ptr &= !mask;
+                    } else {
+                        // 1 means released
+                        *joypad_ptr |= mask;
+                    }
+                }
+            }
+        }
+
+        unsafe {
+            gb_run_frame(gb_ptr);
+        }
+
+        let elapsed = pit::system_time() - frame_start;
+        let remaining = MS_PER_FRAME.saturating_sub(elapsed);
+
+        if remaining > 0 {
+            pit::wait(remaining);
+        }
+    }
 }

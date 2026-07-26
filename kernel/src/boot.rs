@@ -27,6 +27,7 @@ use crate::consts::{heap_start, HEAP_SIZE};
 use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::demo::lesson4::{coroutine_demo, thread_demo};
+use crate::demo::lesson6::peanut_gb;
 use crate::device::framebuffer::Framebuffer;
 use crate::device::pic::PIC;
 use crate::device::serial::COM1;
@@ -165,6 +166,8 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
         .expect("Invalid or unsupported bitmap");
 
     terminal().lock().draw_bitmap_centered(&bm);
+    
+    peanut_gb::play("roms/2048.gb");
 
     // Endless loop, as we cannot return from main().
     loop {}
