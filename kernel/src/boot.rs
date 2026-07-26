@@ -20,6 +20,7 @@
 use core::arch::asm;
 use core::fmt::Write;
 use log::{debug, error, info};
+use tar_no_std::TarArchiveRef;
 use uefi::mem::memory_map::MemoryMapOwned;
 use crate::allocator::global::init_allocator;
 use crate::consts::{heap_start, HEAP_SIZE};
@@ -32,10 +33,12 @@ use crate::device::serial::COM1;
 use crate::device::speaker::{still_alive, tetris};
 use crate::device::{cpu, keyboard, pit, terminal};
 use crate::device::terminal::terminal;
+use crate::filesystem::tarfs;
 use crate::interrupt::dispatcher::init_interrupt_dispatcher;
 use crate::interrupt::idt::idt;
 use crate::library::input::read_char;
 use crate::logger::Logger;
+use crate::multiboot::ModuleTag;
 use crate::thread::scheduler::scheduler;
 
 extern crate alloc;
@@ -54,6 +57,7 @@ mod consts;
 mod interrupt;
 mod coroutine;
 mod thread;
+mod filesystem;
 
 unsafe extern "C" {
     fn load_gdt();
@@ -106,15 +110,18 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     unsafe { load_gdt(); }
 
     // TODO: Call your demo code here.
+    //COM1.lock().write_byte('\n' as u8);
+    //COM1.lock().write_str("Hello World!\n").unwrap();
+    //let s = COM1.lock();
+    //drop(s);
+    // log::trace!("trace message");
+    // log::debug!("debug message");
+    // log::info!("info message");
+    // log::warn!("warn message");
+    // log::error!("error message");
+    // TODO: No here.
+
     init_allocator(heap_start(), HEAP_SIZE);
-
-    COM1.lock().write_byte('H' as u8);
-    COM1.lock().write_byte('H' as u8);
-    COM1.lock().write_byte('U' as u8);
-    COM1.lock().write_byte('\n' as u8);
-    COM1.lock().write_str("Hello World!\n").unwrap();
-
-    println!("Hello, World!");
     
     idt().load();
     init_interrupt_dispatcher();
@@ -128,36 +135,29 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     pit::plugin();
     cpu::enable_int();
 
-    /*loop {
-        let key = read_char();
-
-        if key == '\r' {
-            print!("{}", '\n');
-            //break;
+    if let Some(module) =
+        multiboot.find_tag::<multiboot::ModuleTag>(multiboot::TagType::Module)
+    {
+        match TarArchiveRef::new(module.as_slice()) {
+            Ok(archive_ref) => {
+                tarfs::init_filesystem(archive_ref);
+            }
+            Err(error) => {
+                panic!("Failed to read TAR archive: {:?}", error);
+            }
         }
+    }
 
-        print!("{}", key);
-    }*/
+    let fs = tarfs::filesystem();
 
-    //coroutine_demo();
-    thread_demo();
+    let handle = fs.open("text.txt").unwrap();
+    let size = fs.size(handle).unwrap();
 
-    /*let s = COM1.lock();
-    drop(s);
+    let mut buffer = alloc::vec![0u8; size];
+    let bytes_read = fs.read(handle, &mut buffer).unwrap();
 
-    log::trace!("trace message");
-    log::debug!("debug message");
-    log::info!("info message");
-    log::warn!("warn message");
-    log::error!("error message");
-    
-    text_demo();
-    keyboard_demo();
-
-    heap_demo();
-    
-    speaker_demo();
-    still_alive();*/
+    let text = core::str::from_utf8(&buffer[..bytes_read]).unwrap();
+    println!("{}", text);
 
     // Endless loop, as we cannot return from main().
     loop {}
