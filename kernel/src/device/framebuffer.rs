@@ -7,7 +7,7 @@
  */
 use core::cmp::max;
 use core::ptr::copy;
-use crate::device::font_8x8;
+use crate::device::{font_8x8, framebuffer};
 use crate::library::bitmap::Bitmap;
 use crate::multiboot;
 
@@ -42,6 +42,8 @@ pub const BLUE: u32 = color(0, 0, 170);
 pub const MAGENTA: u32 = color(170, 0, 170);
 pub const CYAN: u32 = color(0, 170, 170);
 pub const WHITE: u32 = color(170, 170, 170);
+pub const CHAR_WIDTH: usize = 8;
+pub const CHAR_HEIGHT: usize = 16;
 
 impl Framebuffer {
     /// Create a new Framebuffer instance.
@@ -111,14 +113,14 @@ impl Framebuffer {
 
     /// Get the pixel data for a character from the font data.
     fn get_char_pixels(c: char) -> &'static [u8] {
-        let char_mem_size = (font_8x8::CHAR_WIDTH + (8 >> 1)) / 8 * font_8x8::CHAR_HEIGHT;
+        let char_mem_size = (framebuffer::CHAR_WIDTH + (8 >> 1)) / 8 * framebuffer::CHAR_HEIGHT;
         let start = char_mem_size * c as usize;
         let end = start + char_mem_size;
 
         &font_8x8::DATA[start..end]
     }
 
-    /// Draw a single character at the specified (x, y) coordinates with the given foreground and background colors.
+    /*/// Draw a single character at the specified (x, y) coordinates with the given foreground and background colors.
     /// If the character does not fit fully within the framebuffer, it is not drawn.
     pub fn draw_char(&mut self, c: char, x: usize, y: usize, fg_color: u32, bg_color: u32) {
         let char_width  = font_8x8::CHAR_WIDTH;
@@ -151,6 +153,44 @@ impl Framebuffer {
 
             pixel_index += 1;
         }
+    }*/
+
+    /// Draw a single character at the specified (x, y) coordinates with the given foreground and background colors.
+    ///
+    /// Fullwidth glyphs are ignored.
+    /// If the character does not fit completely inside the framebuffer, it is not drawn.
+    pub fn draw_char(&mut self, c: char, x: usize, y: usize, fg_color: u32, bg_color: u32) {
+        let Some(glyph) = unifont::get_glyph(c) else {
+            return;
+        };
+
+        if glyph.is_fullwidth() {
+            return;
+        }
+
+        // Do not draw partially outside the framebuffer.
+        if x + CHAR_WIDTH > self.width || y + CHAR_HEIGHT > self.height {
+            return;
+        }
+
+        for y_offset in 0..CHAR_HEIGHT {
+            for x_offset in 0..CHAR_WIDTH {
+                let color = if glyph.get_pixel(x_offset, y_offset) {
+                    fg_color
+                } else {
+                    bg_color
+                };
+
+                // Safe because the bounds were checked above.
+                unsafe {
+                    self.draw_pixel_unchecked(
+                        x + x_offset,
+                        y + y_offset,
+                        color,
+                    );
+                }
+            }
+        }
     }
 
     /// Draw a string at the specified (x, y) coordinates with the given foreground and background colors.
@@ -159,7 +199,7 @@ impl Framebuffer {
 
         for c in str.chars() {
             self.draw_char(c, x, y, fg_color, bg_color);
-            x += font_8x8::CHAR_WIDTH;
+            x += framebuffer::CHAR_WIDTH;
         }
     }
 
