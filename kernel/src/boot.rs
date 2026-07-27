@@ -112,6 +112,8 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     unsafe { load_gdt(); }
 
     // TODO: Call your demo code here.
+    // cargo make --no-workspace qemu
+    // cargo make --no-workspace --profile production qemu
 
     // Heap Allocator (LinkedList)
     init_allocator(heap_start(), HEAP_SIZE);
