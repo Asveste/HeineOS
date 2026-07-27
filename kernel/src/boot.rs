@@ -129,6 +129,9 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     pit::plugin();
     cpu::enable_int();
 
+    // Threading
+    //thread_demo();
+
     // Filesystem: Tar Archive Ref
     if let Some(module) = multiboot.find_tag::<multiboot::ModuleTag>(multiboot::TagType::Module) {
         match TarArchiveRef::new(module.as_slice()) {

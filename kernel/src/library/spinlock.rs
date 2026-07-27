@@ -9,6 +9,7 @@
 use core::cell::UnsafeCell;
 use core::ops::{Deref, DerefMut};
 use core::sync::atomic::{AtomicBool, Ordering};
+use crate::thread::scheduler::scheduler;
 
 /// A simple spinlock implementation that spins in a loop until it acquires the lock.
 /// It uses an atomic boolean to represent the lock state.
@@ -56,6 +57,7 @@ impl<T> Spinlock<T> {
             if let Some(guard) = self.try_lock() {
                 return guard;
             }
+            //scheduler().yield_cpu();
         }
 
         //SpinlockGuard { lock: self }
