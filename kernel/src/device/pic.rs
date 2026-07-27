@@ -123,6 +123,7 @@ impl Pic {
         let local_irq_number = irq_number % 8;
 
         let bit_mask = 1u8 << local_irq_number;
+        
         if irq_number < 8 {
             unsafe {
                 let current_mask = self.data1.inb();
@@ -144,6 +145,7 @@ impl Pic {
         let local_irq_number = irq_number % 8;
 
         let bit_mask = 1u8 << local_irq_number;
+        
         if irq_number < 8 {
             unsafe {
                 let current_mask = self.data1.inb();

@@ -28,7 +28,9 @@ unsafe extern "C" fn coroutine_start(stack_ptr: usize) {
     naked_asm!(
         // TODO: Implement assembly code for starting a coroutine
         "mov rsp, rdi",
+        
         "popfq",
+        
         "pop rbp",
         "pop rdi",
         "pop rsi",
@@ -44,6 +46,7 @@ unsafe extern "C" fn coroutine_start(stack_ptr: usize) {
         "pop r10",
         "pop r9",
         "pop r8",
+        
         "ret"
     )
 }
@@ -70,12 +73,14 @@ unsafe extern "C" fn coroutine_switch(current_stack_ptr: *mut usize, next_stack:
         "push rsi",
         "push rdi",
         "push rbp",
+        
         "pushfq",
 
         "mov [rdi], rsp",
         "mov rsp, rsi",
 
         "popfq",
+        
         "pop rbp",
         "pop rdi",
         "pop rsi",
@@ -91,6 +96,7 @@ unsafe extern "C" fn coroutine_switch(current_stack_ptr: *mut usize, next_stack:
         "pop r10",
         "pop r9",
         "pop r8",
+        
         "ret"
     )
 }
@@ -146,6 +152,7 @@ impl Coroutine {
         );
 
         let current_stack_ptr = ptr::from_mut(&mut self.stack_ptr);
+        
         unsafe {
             let next_stack = (*self.next).stack_ptr;
             coroutine_switch(current_stack_ptr, next_stack);

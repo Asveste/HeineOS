@@ -143,7 +143,7 @@ impl IntVectors {
         } else {
             log::error!("interrupt vector {} not found", vector);
             panic!("interrupt vector {} not found", vector);
-            //false
+            false
         }
     }
 }

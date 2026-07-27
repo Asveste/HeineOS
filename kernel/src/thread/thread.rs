@@ -29,8 +29,11 @@ unsafe extern "C" fn thread_start(stack_ptr: usize) {
     naked_asm!(
         // TODO: Implement assembly code for starting a thread
         "mov rsp, rdi",
+        
         "call {unlock}",
+        
         "popfq",
+        
         "pop rbp",
         "pop rdi",
         "pop rsi",
@@ -46,6 +49,7 @@ unsafe extern "C" fn thread_start(stack_ptr: usize) {
         "pop r10",
         "pop r9",
         "pop r8",
+        
         "ret",
 
         unlock = sym unlock_scheduler,
@@ -74,6 +78,7 @@ unsafe extern "C" fn thread_switch(current_stack_ptr: *mut usize, next_stack: us
         "push rsi",
         "push rdi",
         "push rbp",
+        
         "pushfq",
 
         "mov [rdi], rsp",
@@ -82,6 +87,7 @@ unsafe extern "C" fn thread_switch(current_stack_ptr: *mut usize, next_stack: us
         "call {unlock}",
 
         "popfq",
+        
         "pop rbp",
         "pop rdi",
         "pop rsi",
@@ -97,6 +103,7 @@ unsafe extern "C" fn thread_switch(current_stack_ptr: *mut usize, next_stack: us
         "pop r10",
         "pop r9",
         "pop r8",
+        
         "ret",
 
         unlock = sym unlock_scheduler,

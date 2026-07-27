@@ -106,11 +106,14 @@ impl TarFs {
             if let Ok(entry_path) = entry.filename().as_str() {
                 if entry_path == path {
                     let a = FileHandle(self.next_handle_id());
+                    
                     let open_file = OpenFile {
                         data: entry,
                         position: 0,
                     };
+                    
                     self.open_handles.lock().insert(a, open_file);
+                    
                     return Ok(a);
                 }
             }
@@ -150,8 +153,7 @@ impl TarFs {
         let start = open_file.position;
         let end = start + bytes_to_read;
 
-        buffer[..bytes_to_read]
-            .copy_from_slice(&file_data[start..end]);
+        buffer[..bytes_to_read].copy_from_slice(&file_data[start..end]);
 
         // Move the file position forward
         open_file.position = end;
@@ -186,6 +188,7 @@ impl TarFs {
         let new_position = new_position as usize;
 
         open_file.position = new_position;
+        
         Ok(new_position)
     }
     

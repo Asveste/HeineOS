@@ -62,6 +62,7 @@ impl LinkedListAllocator {
         //todo!("list::init() is not implemented yet.")
         self.heap_start = heap_start;
         self.heap_end = heap_start.saturating_add(heap_size);
+        
         unsafe {
             self.add_free_block(heap_start, heap_size);
         }
@@ -73,6 +74,7 @@ impl LinkedListAllocator {
         if size >= size_of::<ListNode>() && align_up(addr, align_of::<ListNode>()) == addr {
             let old = self.head.next.take();
             let new_node_ptr = addr as *mut ListNode;
+            
             unsafe {
                 new_node_ptr.write(ListNode::new(size));
                 let new_node: &'static mut ListNode = &mut *new_node_ptr;
@@ -87,10 +89,12 @@ impl LinkedListAllocator {
     fn find_free_block(&mut self, size: usize, align: usize) -> Option<(&'static mut ListNode, usize)> {
         //todo!("list::find_free_block() is not implemented yet.")
         let mut current = &mut self.head;
+        
         while let Some(ref mut block) = current.next {
             if let Ok(alloc_start) = Self::check_block_for_alloc(block, size, align) {
                 let next = block.next.take();
                 let free_block = current.next.take().unwrap();
+                
                 current.next = next;
 
                 return Some((free_block, alloc_start));
@@ -98,6 +102,7 @@ impl LinkedListAllocator {
                 current = current.next.as_mut().unwrap();
             }
         }
+        
         None
     }
 
@@ -110,6 +115,7 @@ impl LinkedListAllocator {
         if alloc_end <= block.end_addr() {
             return Ok(alloc_start)
         }
+        
         Err(())
     }
 
@@ -133,6 +139,7 @@ impl LinkedListAllocator {
         println!("\tFree block(s):");
 
         let mut current = self.head.next.as_ref();
+        
         while let Some(node) = current {
             println!("\t\tBlock at {:#x} with size {}", node.start_addr(), node.size);
             current = node.next.as_ref();
@@ -148,6 +155,7 @@ impl LinkedListAllocator {
         if block.is_none() {
             return null_mut()
         }
+        
         let (free_block, alloc_start) = block.unwrap();
 
         let alloc_end = alloc_start.saturating_add(size);

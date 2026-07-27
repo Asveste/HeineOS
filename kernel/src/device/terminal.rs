@@ -104,6 +104,7 @@ impl Terminal {
         if col >= self.cols {
             col = self.cols.saturating_sub(1);
         }
+        
         if row >= self.rows {
             row = self.rows.saturating_sub(1);
         }
@@ -117,6 +118,7 @@ impl Terminal {
         let mut framebuffer = self.framebuffer.lock();
 
         framebuffer.clear();
+        
         self.pos = (0, 0);
         Self::draw_cursor(self.pos, &mut framebuffer);
     }
@@ -234,6 +236,7 @@ impl Write for Terminal {
         for c in s.chars() {
             self.put_char(c);
         }
+        
         Ok(())
     }
 }

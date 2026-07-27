@@ -52,6 +52,7 @@ impl BumpAllocator {
         //todo!("bump::alloc() is not implemented yet.")
         let alloc_start = align_up(self.next, layout.align());
         let alloc_end = alloc_start.saturating_add(layout.size());
+        
         if alloc_end <= self.heap_end {
             self.next = alloc_end;
             self.allocations += 1;

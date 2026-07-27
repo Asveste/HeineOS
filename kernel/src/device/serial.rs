@@ -111,6 +111,7 @@ impl fmt::Write for ComPort {
         for byte in s.bytes() {
             self.write_byte(byte);
         }
+        
         Ok(())
     }
 }

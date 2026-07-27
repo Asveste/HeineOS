@@ -81,6 +81,7 @@ impl<T> LinkedQueue<T> {
             if matches {
                 let next = current.as_mut().unwrap().next.take();
                 *current = next;
+                
                 return true;
             }
 

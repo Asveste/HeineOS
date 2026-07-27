@@ -112,6 +112,7 @@ impl Speaker {
         //todo!("Speaker::on() is not implemented yet.")
         let before = unsafe { self.ppi_port.inb() };
         let after = before | 0b0000_0011;
+        
         unsafe {
             self.ppi_port.outb(after);
         }
@@ -122,6 +123,7 @@ impl Speaker {
         //todo!("Speaker::off() is not implemented yet.")
         let before = unsafe { self.ppi_port.inb() };
         let after = before & !0b0000_0011;
+        
         unsafe {
             self.ppi_port.outb(after);
         }

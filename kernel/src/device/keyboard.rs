@@ -240,6 +240,7 @@ impl Keyboard {
         //todo!("keyboard::poll_key_press() not implemented yet");
         loop {
             let event = self.poll_key_event();
+            
             if event.pressed() {
                 return event;
             }

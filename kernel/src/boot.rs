@@ -112,34 +112,25 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     unsafe { load_gdt(); }
 
     // TODO: Call your demo code here.
-    //COM1.lock().write_byte('\n' as u8);
-    //COM1.lock().write_str("Hello World!\n").unwrap();
-    //let s = COM1.lock();
-    //drop(s);
-    // log::trace!("trace message");
-    // log::debug!("debug message");
-    // log::info!("info message");
-    // log::warn!("warn message");
-    // log::error!("error message");
-    // TODO: No here.
 
+    // Heap Allocator (LinkedList)
     init_allocator(heap_start(), HEAP_SIZE);
     
+    // Interrupts 1
     idt().load();
     init_interrupt_dispatcher();
-
     {
         let mut pic = PIC.lock();
         pic.init();
     }
-
+    
+    // Interrupts 2
     keyboard::plugin();
     pit::plugin();
     cpu::enable_int();
 
-    if let Some(module) =
-        multiboot.find_tag::<multiboot::ModuleTag>(multiboot::TagType::Module)
-    {
+    // Filesystem: Tar Archive Ref
+    if let Some(module) = multiboot.find_tag::<multiboot::ModuleTag>(multiboot::TagType::Module) {
         match TarArchiveRef::new(module.as_slice()) {
             Ok(archive_ref) => {
                 tarfs::init_filesystem(archive_ref);
@@ -150,6 +141,7 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
         }
     }
 
+    // Read .txt file from Tar Archive
     let fs = tarfs::filesystem();
 
     let handle = fs.open("text.txt").unwrap();
@@ -161,12 +153,14 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     let text = core::str::from_utf8(&buffer[..bytes_read]).unwrap();
     println!("{}", text);
 
+    // Bitmap Image Small Demo
     let bm = bitmap::Bitmap::read_from_file("heine.bmp")
         .expect("Failed to read bitmap file")
         .expect("Invalid or unsupported bitmap");
 
     terminal().lock().draw_bitmap_centered(&bm);
     
+    // Game Boy Emulator
     peanut_gb::play("roms/2048.gb");
 
     // Endless loop, as we cannot return from main().
