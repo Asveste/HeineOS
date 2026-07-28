@@ -38,6 +38,7 @@ pub fn coroutine_demo() {
 fn coroutine_loop(coroutine: &mut Coroutine) {
     //todo!("lesson4::coroutine_loop() is not implemented yet.");
     let mut count = 0;
+    
     loop {
         count += 1;
         {

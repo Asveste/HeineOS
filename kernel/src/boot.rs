@@ -166,7 +166,10 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     terminal().lock().draw_bitmap_centered(&bm);
     
     // Game Boy Emulator
-    peanut_gb::play("roms/2048.gb");
+    //peanut_gb::play("roms/2048.gb");
+    text_demo();
+    keyboard_demo();
+    heap_demo();
 
     // Endless loop, as we cannot return from main().
     loop {}

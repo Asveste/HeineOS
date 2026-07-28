@@ -27,12 +27,14 @@ pub fn keyboard_demo() {
     //todo!("lesson1::keyboard_demo() not implemented yet");
     println!("Keyboard Demo:");
     println!("Press keys on your keyboard. Press 'ESC' to exit the demo.");
+
     let key_buffer = keyboard::keyboard_buffer();
 
     loop {
         let key = key_buffer.poll_key_event();
 
         if key.pressed() && key.scancode() == Some(Scancode::Escape) {
+            println!("Exiting demo.");
             break;
         }
 

@@ -12,6 +12,7 @@ use crate::device::speaker::SPEAKER;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use crate::device::keyboard;
+use crate::device::pit::wait;
 
 /// A simple heap demo, allocating and freeing memory on the heap.
 /// The allocator state is dumped before and after each operation.
@@ -107,8 +108,10 @@ pub fn heap_demo() {
     println!("--------------------------------------");
     println!("");
 
+    // Range 0x01000000 = 16MiB
     dump_free_list();
 
+    // Should consume 32 Bytes (16 each)
     let s1 = Box::new(S { a: 1, b: 2 });
     let s2 = Box::new(S { a: 3, b: 4 });
 
@@ -117,6 +120,7 @@ pub fn heap_demo() {
     println!("s2 = {:?}", s2);
     println!("");
 
+    // Compare free block size now. Should be smaller.
     dump_free_list();
 
     println!("");
@@ -138,6 +142,7 @@ pub fn heap_demo() {
     drop(s1);
     drop(s2);
 
+    // See how there is now two free blocks (s1 and s2)
     dump_free_list();
 
     println!("");
@@ -158,6 +163,7 @@ pub fn heap_demo() {
 
     dump_free_list();
 
+    // Should consume 64 Bytes (16 extra if new one comes in to prevent new allocation)
     let mut v: Vec<S> = Vec::new();
     v.push(S { a: 5, b: 6 });
     v.push(S { a: 7, b: 8 });
@@ -189,6 +195,7 @@ pub fn heap_demo() {
 
     drop(v);
 
+    // See how there is now one free block of 64 Bytes
     dump_free_list();
 
     println!("");
@@ -208,6 +215,17 @@ pub fn heap_demo() {
 pub fn speaker_demo() {
     //todo!("lesson2::speaker_demo() is not implemented yet.")
     let mut speaker = SPEAKER.lock();
-    speaker.play(400, 10);
+
+    // Telekom Jingle (not tested yet)
+    speaker.play(523, 100);
+    wait(50);
+    speaker.play(523, 100);
+    wait(50);
+    speaker.play(523, 100);
+    wait(50);
+    speaker.play(659, 100);
+    wait(50);
+    speaker.play(523, 100);
+
     drop(speaker);
 }
