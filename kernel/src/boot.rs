@@ -28,6 +28,7 @@ use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::demo::lesson4::{coroutine_demo, thread_demo};
 use crate::demo::lesson6::peanut_gb;
+use crate::demo::menu;
 use crate::device::framebuffer::Framebuffer;
 use crate::device::pic::PIC;
 use crate::device::serial::COM1;
@@ -115,26 +116,21 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     // cargo make --no-workspace qemu
     // cargo make --no-workspace --profile production qemu
 
-    // Heap Allocator (LinkedList)
+    // Initialize Heap Allocator (LinkedList)
     init_allocator(heap_start(), HEAP_SIZE);
     
-    // Interrupts 1
+    // Initialize Interrupts
     idt().load();
     init_interrupt_dispatcher();
     {
         let mut pic = PIC.lock();
         pic.init();
     }
-    
-    // Interrupts 2
     keyboard::plugin();
     pit::plugin();
     cpu::enable_int();
 
-    // Threading
-    //thread_demo();
-
-    // Filesystem: Tar Archive Ref
+    // Initialize Filesystem: Tar Archive Ref
     if let Some(module) = multiboot.find_tag::<multiboot::ModuleTag>(multiboot::TagType::Module) {
         match TarArchiveRef::new(module.as_slice()) {
             Ok(archive_ref) => {
@@ -146,6 +142,7 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
         }
     }
 
+    /*
     // Read .txt file from Tar Archive
     let fs = tarfs::filesystem();
 
@@ -164,15 +161,14 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
         .expect("Invalid or unsupported bitmap");
 
     terminal().lock().draw_bitmap_centered(&bm);
-    
-    // Game Boy Emulator
-    //peanut_gb::play("roms/2048.gb");
-    text_demo();
-    keyboard_demo();
-    heap_demo();
+    */
+
+    // Actually Start Demo
+    // Starts the menu forever
+    menu::run();
 
     // Endless loop, as we cannot return from main().
-    loop {}
+    //loop {}
 }
 
 /// Exit UEFI boot services.

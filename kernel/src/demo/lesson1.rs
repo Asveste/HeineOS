@@ -26,7 +26,7 @@ pub fn text_demo() {
 pub fn keyboard_demo() {
     //todo!("lesson1::keyboard_demo() not implemented yet");
     println!("Keyboard Demo:");
-    println!("Press keys on your keyboard. Press 'ESC' to exit the demo.");
+    println!("Press keys on your keyboard. Press 'ESC' to exit the demo.\n");
 
     let key_buffer = keyboard::keyboard_buffer();
 
