@@ -29,7 +29,7 @@ impl BumpAllocator {
         }
     }
 
-    /// Initialize the bump allocator.
+    /// Initialize the allocator and set the whole heap as unused.
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         //todo!("bump::init() is not implemented yet.")
         self.heap_start = heap_start;
@@ -39,6 +39,7 @@ impl BumpAllocator {
     }
 
     /// Dump free memory for debugging purposes.
+    /// Print the current heap bounds, next free address, and remaining memory.
     pub fn dump_free_list(&mut self) {
         //todo!("bump::dump_free_list() is not implemented yet.")
         println!("Bump allocator:");
@@ -48,6 +49,8 @@ impl BumpAllocator {
     }
 
     /// Allocate memory of the given size and alignment.
+    /// Align the next free address and move it forward by the allocation size.
+    /// Returns a null pointer if the allocation does not fit.
     pub unsafe fn alloc(&mut self, layout: Layout) -> *mut u8 {
         //todo!("bump::alloc() is not implemented yet.")
         let alloc_start = align_up(self.next, layout.align());
@@ -63,6 +66,7 @@ impl BumpAllocator {
     }
 
     /// Deallocate memory (not supported by bump allocator).
+    /// Freed memory is therefore not reused.
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         //todo!("bump::dealloc() is not implemented yet.")
         let _ = ptr;

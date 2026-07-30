@@ -85,11 +85,13 @@ impl ComPort {
     }
 
     /// Write a single byte to the COM port.
+    /// Newlines are converted to CRLF because many terminals expect "\r\n"
     pub fn write_byte(&mut self, byte: u8) {
         //todo!("ComPort::write_byte() not implemented yet");
         const READY_TO_WRITE: u8 = 1 << 5;
 
         unsafe {
+            // Wait until the transmit buffer is empty before writing
             if byte == b'\n' {
                 while self.line_status_port.inb() & READY_TO_WRITE == 0 {}
                 self.data_port.outb(b'\r');

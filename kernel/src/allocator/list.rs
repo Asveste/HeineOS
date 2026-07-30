@@ -58,6 +58,7 @@ impl LinkedListAllocator {
     }
 
     /// Initialize the allocator with the heap bounds given in the constructor.
+    /// Store the heap bounds and insert the entire heap as one free block.
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         //todo!("list::init() is not implemented yet.")
         self.heap_start = heap_start;
@@ -69,6 +70,8 @@ impl LinkedListAllocator {
     }
 
     /// Adds the given free memory block 'addr' to the front of the free list.
+    /// Store a ListNode inside the freed block and insert it at the front
+    /// of the free list.
     unsafe fn add_free_block(&mut self, addr: usize, size: usize) {
         //todo!("list::add_free_block() is not implemented yet.")
         if size >= size_of::<ListNode>() && align_up(addr, align_of::<ListNode>()) == addr {
@@ -107,6 +110,7 @@ impl LinkedListAllocator {
     }
 
     /// Check if the given block is large enough for an allocation with `size` and `align`.
+    /// Returns the aligned allocation address on success.
     fn check_block_for_alloc(block: &ListNode, size: usize, align: usize) -> Result<usize,()> {
         //todo!("list::check_block_for_alloc() is not implemented yet.")
         let alloc_start = align_up(block.start_addr(), align);
@@ -132,6 +136,7 @@ impl LinkedListAllocator {
     }
 
     /// Dump the free list for debugging purposes.
+    /// Traverse the linked list and print every currently free memory block.
     pub fn dump_free_list(&mut self) {
         //todo!("list::dump_free_list() is not implemented yet.")
         println!("Heap allocator:");
@@ -147,6 +152,8 @@ impl LinkedListAllocator {
     }
 
     /// Allocate memory of the given size and alignment.
+    /// Allocate from the first suitable free block and reinsert any usable
+    /// remaining space into the free list.
     pub unsafe fn alloc(&mut self, layout: Layout) -> *mut u8 {
         //todo!("list::alloc() is not implemented yet.")
         let (size, align) = Self::size_align(layout);
@@ -171,6 +178,8 @@ impl LinkedListAllocator {
     }
 
     /// Free the memory block at the given pointer with the given layout.
+    /// Convert the freed allocation back into a free block and insert it
+    /// into the free list.
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         let (size, _) = LinkedListAllocator::size_align(layout);
 

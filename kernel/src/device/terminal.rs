@@ -120,6 +120,8 @@ impl Terminal {
         framebuffer.clear();
         
         self.pos = (0, 0);
+
+        // Redraw cursor after clearing the screen
         Self::draw_cursor(self.pos, &mut framebuffer);
     }
 
@@ -138,11 +140,13 @@ impl Terminal {
         //todo!("terminal::put_char_colored() not implemented yet");
         let mut framebuffer = self.framebuffer.lock();
 
+        // Remove old cursor before drawing the next character.
         Self::clear_cursor(self.pos, &mut framebuffer);
 
         if c == '\n' {
             self.pos = (0, self.pos.1 + 1);
         } else {
+            // Convert terminal cell coordinates to framebuffer pixel coordinates
             let x = self.pos.0 * framebuffer::CHAR_WIDTH;
             let y = self.pos.1 * framebuffer::CHAR_HEIGHT;
 
@@ -150,12 +154,14 @@ impl Terminal {
 
             self.pos.0 += 1;
 
+            // Wrap to the next line when the end of the row is reached.
             if self.pos.0 >= self.cols {
                 self.pos.0 = 0;
                 self.pos.1 += 1;
             }
         }
 
+        // If the cursor moved below the screen, scroll by one text row.
         if self.pos.1 >= self.rows {
             framebuffer.scroll_up(framebuffer::CHAR_HEIGHT);
             self.pos.1 = self.rows - 1;

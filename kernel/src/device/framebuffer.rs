@@ -258,6 +258,7 @@ impl Framebuffer {
 
     /// Scroll the framebuffer content up by the specified number of lines.
     /// The freed space at the bottom is cleared to black.
+    /// The remaining framebuffer contents are copied upward and the bottom area is cleared.
     pub fn scroll_up(&mut self, lines: usize) {
         //todo!("framebuffer::scroll_up() not implemented yet");
         if lines == 0 {
@@ -277,7 +278,9 @@ impl Framebuffer {
         let src = unsafe {dst.add(bytes_to_scroll)};
 
         unsafe {
+            // copy allows overlapping memory
             copy(src, dst, bytes_to_copy);
+            // Clear the newly exposed bottom part of the screen
             dst.add(bytes_to_copy).write_bytes(0, bytes_to_scroll);
         }
     }

@@ -205,6 +205,7 @@ impl Keyboard {
         let cp = &mut self.control_port;
         let b = unsafe { cp.inb() };
 
+        // No scancode available in the output buffer.
         if b & 0x01 == 0 {
             return None;
         }

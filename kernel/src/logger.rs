@@ -28,6 +28,7 @@ impl log::Log for Logger {
     }
 
     /// Print a log record to the serial port.
+    /// Includes a timestamp, log level, source location and message
     fn log(&self, record: &Record) {
         // TODO: Write the log message to the serial port.
         if !self.enabled(record.metadata()) {
