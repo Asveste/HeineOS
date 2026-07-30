@@ -138,6 +138,9 @@ impl Scheduler {
     /// Yield the CPU and switch to the next thread in the ready queue.
     pub fn yield_cpu(&self) {
         //todo!("Scheduler::yield_cpu() is not implemented yet.");
+        // Queue operations may allocate or free linked-list nodes.
+        // Switching while the allocator is already locked could deadlock if
+        // scheduler code attempted another heap operation.
         if allocator::global::is_allocator_locked() {
             return;
         }

@@ -119,6 +119,9 @@ impl Pic {
     /// Enable an IRQ to be forwarded to the processor by the PIC.
     pub fn allow (&mut self, irq: Irq) {
         //todo!("Pic::allow() not implemented yet.");
+
+        // Both PICs manage eight local interrupt lines.
+        // IRQs 8 to 15 therefore use bit positions 0 to 7 in the slave PIC.
         let irq_number = irq as u8;
         let local_irq_number = irq_number % 8;
 
@@ -170,12 +173,14 @@ impl Pic {
             unsafe {
                 let current_mask = self.data1.inb();
                 let raw_bit = (current_mask >> local_irq_number) & 1;
+                // Mask bit zero means enabled and mask bit one means disabled.
                 raw_bit == 0
             }
         } else {
             unsafe {
                 let current_mask = self.data2.inb();
                 let raw_bit = (current_mask >> local_irq_number) & 1;
+                // Mask bit zero means enabled and mask bit one means disabled.
                 raw_bit == 0
             }
         }

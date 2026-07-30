@@ -122,12 +122,15 @@ impl Bitmap {
         if header.info_header.header_size != 40 {
             return None;
         }
+        // A positive BMP height means rows are stored bottom-to-top.
+        // Top-down BMPs use a negative height and are not supported here.
         if width <= 0 || height <= 0 {
             return None;
         }
         if header.info_header.color_planes != 1 {
             return None;
         }
+        // Every source pixel must contain exactly three bytes: blue, green and red.
         if bits_per_pixel != 24 {
             return None;
         }
@@ -160,6 +163,8 @@ impl Bitmap {
         let mut pixel_data = Vec::with_capacity(width * height);
 
         for y in 0..height {
+            // Positive-height BMP images store the bottom row first.
+            // Reverse the source row so the result is stored top-to-bottom.
             let source_y = height - 1 - y;
             let row_start = data_offset + source_y * row_stride;
 
@@ -170,6 +175,7 @@ impl Bitmap {
                 let green = data[pixel_index + 1];
                 let red = data[pixel_index + 2];
 
+                // The framebuffer uses a 32-bit value, so add a fully opaque alpha byte.
                 pixel_data.push(color(red, green, blue, 255));
             }
         }

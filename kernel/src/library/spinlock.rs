@@ -57,7 +57,7 @@ impl<T> Spinlock<T> {
             if let Some(guard) = self.try_lock() {
                 return guard;
             }
-            //scheduler().yield_cpu();
+            scheduler().yield_cpu();
         }
 
         //SpinlockGuard { lock: self }

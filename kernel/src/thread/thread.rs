@@ -29,7 +29,10 @@ unsafe extern "C" fn thread_start(stack_ptr: usize) {
     naked_asm!(
         // TODO: Implement assembly code for starting a thread
         "mov rsp, rdi",
-        
+
+        // schedule entered this routine while holding the scheduler-state lock.
+        // Execution leaves that Rust scope through a stack switch, so release
+        // the lock explicitly before the new thread starts running.
         "call {unlock}",
         
         "popfq",
@@ -148,6 +151,9 @@ impl Thread {
     /// The scheduler does further thread switching via `switch()`.
     pub fn start(&mut self) {
         //todo!("Thread::start() is not implemented yet.");
+
+        // The low-level routine restores the prepared registers and returns
+        // indirectly into Thread::kickoff.
         unsafe {
             thread_start(self.stack_ptr);
         }
@@ -158,9 +164,11 @@ impl Thread {
     pub unsafe fn switch(current: *mut Thread, next: *mut Thread) {
         //todo!("Thread::switch() is not implemented yet.");
         unsafe {
+            // Pass the address of the field into which assembly saves the current rsp.
             let current_stack_ptr =
                 ptr::addr_of_mut!((*current).stack_ptr);
 
+            // Copy the next saved stack address before entering assembly.
             let next_stack =
                 (*next).stack_ptr;
 

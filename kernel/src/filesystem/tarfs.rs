@@ -103,15 +103,19 @@ impl TarFs {
         // Find the entry in the archive matching the given path.
         //todo!("tarfs::open() is not yet implemented");
         for entry in self.archive.entries() {
+            // Invalid UTF-8 filenames cannot match a Rust string path and are skipped.
             if let Ok(entry_path) = entry.filename().as_str() {
                 if entry_path == path {
                     let a = FileHandle(self.next_handle_id());
-                    
+
+                    // The archive data is shared, but every handle owns a separate
+                    // current read position.
                     let open_file = OpenFile {
                         data: entry,
                         position: 0,
                     };
-                    
+
+                    // Protect the global open-handle table from concurrent access.
                     self.open_handles.lock().insert(a, open_file);
                     
                     return Ok(a);

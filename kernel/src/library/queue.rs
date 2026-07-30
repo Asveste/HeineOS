@@ -79,7 +79,10 @@ impl<T> LinkedQueue<T> {
             };
 
             if matches {
+                // Detach the matched nodes successor.
                 let next = current.as_mut().unwrap().next.take();
+                // Replace the link that owned the matched node with its successor.
+                // The removed Box is dropped automatically, freeing the node.
                 *current = next;
                 
                 return true;

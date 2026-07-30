@@ -91,11 +91,20 @@ impl Speaker {
     /// Play a specific frequency for a given amount of time (milliseconds).
     pub fn play(&mut self, frequency: usize, duration: usize) {
         //todo!("Speaker::play() is not implemented yet.")
+
+        // PIT counters divide the fixed PIT base frequency.
+        // A smaller divisor therefore produces a higher tone.
         let divisor = PIT_FREQUENCY / frequency;
+
+        // The PIT expects the 16-bit divisor as low byte followed by high byte.
         let low = divisor as u8;
         let high = (divisor >> 8) as u8;
 
         unsafe {
+            // Bits 7 to 6 select PIT channel 2.
+            // Bits 5 to 4 configure writing the low byte and then the high byte.
+            // Bits 3 to 1 select mode 3, the square-wave generator.
+            // Bit 0 selects binary counting.
             self.pit_ctrl_port.outb(0b1011_0110);
             self.pit_data2_port.outb(low);
             self.pit_data2_port.outb(high);
@@ -110,7 +119,11 @@ impl Speaker {
     /// The played tone is dependent on counter 2 of the PIT.
     pub fn on(&mut self) {
         //todo!("Speaker::on() is not implemented yet.")
-        let before = unsafe { self.ppi_port.inb() };
+        let before = unsafe {
+            self.ppi_port.inb()
+        };
+        // Bit 0 enables the PIT channel 2 gate.
+        // Bit 1 connects the channel 2 output to the speaker.
         let after = before | 0b0000_0011;
         
         unsafe {
@@ -140,6 +153,7 @@ impl Speaker {
         let low = unsafe { self.pit_data0_port.inb() };
         let high = unsafe { self.pit_data0_port.inb() };
 
+        // Reconstruct the original little-endian 16-bit counter value.
         (low as u16) | ((high as u16) << 8)
     }
 
@@ -150,6 +164,9 @@ impl Speaker {
     fn delay(&mut self, duration: usize) {
         //todo!("Speaker::delay() is not implemented yet.")
         unsafe {
+            // Bits 7 to 6 select PIT channel 0.
+            // Bits 5 to 4 configure writing the low byte and then the high byte.
+            // Bits 3 to 1 select mode 2, the rate generator.
             self.pit_ctrl_port.outb(0b0011_0100);
             self.pit_data0_port.outb(0xA9);
             self.pit_data0_port.outb(0x04);

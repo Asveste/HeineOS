@@ -270,6 +270,8 @@ impl Framebuffer {
             return;
         }
 
+        // pitch is used instead of width times four because every hardware row
+        // may contain additional padding bytes.
         let bytes_total = self.pitch * self.height;
         let bytes_to_scroll = self.pitch * lines;
         let bytes_to_copy = bytes_total - bytes_to_scroll;

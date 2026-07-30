@@ -27,10 +27,16 @@ fn next_id() -> usize {
 unsafe extern "C" fn coroutine_start(stack_ptr: usize) {
     naked_asm!(
         // TODO: Implement assembly code for starting a coroutine
+
+        // According to the System V ABI, the first argument is passed in rdi.
+        // Replace the current stack with the coroutine's prepared stack.
         "mov rsp, rdi",
-        
+
+        // Restore the saved flags before restoring the general-purpose registers
         "popfq",
-        
+
+        // The pop order must be the exact reverse of the order used by
+        // coroutine_switch and must match the layout from prepare_stack.
         "pop rbp",
         "pop rdi",
         "pop rsi",
@@ -46,7 +52,10 @@ unsafe extern "C" fn coroutine_start(stack_ptr: usize) {
         "pop r10",
         "pop r9",
         "pop r8",
-        
+
+        // The next stack value is interpreted as the return address.
+        // For a new coroutine this is Coroutine::kickoff. For a suspended
+        // coroutine it is the instruction following its previous switch.
         "ret"
     )
 }
@@ -58,6 +67,9 @@ unsafe extern "C" fn coroutine_start(stack_ptr: usize) {
 unsafe extern "C" fn coroutine_switch(current_stack_ptr: *mut usize, next_stack: usize) {
     naked_asm!(
         // TODO: Implement assembly code for switching coroutines
+
+        // Save all general-purpose registers because a coroutine may yield
+        // at an arbitrary point and expects its complete state to survive.
         "push r8",
         "push r9",
         "push r10",
@@ -77,6 +89,8 @@ unsafe extern "C" fn coroutine_switch(current_stack_ptr: *mut usize, next_stack:
         "pushfq",
 
         "mov [rdi], rsp",
+        // rsi contains the saved stack pointer of the next coroutine.
+        // From this point onward, execution uses the next coroutine's stack.
         "mov rsp, rsi",
 
         "popfq",
@@ -137,6 +151,10 @@ impl Coroutine {
     /// May only be called once.
     pub fn start(&mut self) {
         //todo!("Coroutine::start() is not implemented yet.");
+
+        // stack_ptr points to the artificial register frame created by
+        // prepare_stack. The assembly routine restores the frame and returns
+        // indirectly into Coroutine::kickoff.
         unsafe {
             coroutine_start(self.stack_ptr);
         }
@@ -151,6 +169,7 @@ impl Coroutine {
             self.id
         );
 
+        // The assembly routine writes the current rsp into this field.
         let current_stack_ptr = ptr::from_mut(&mut self.stack_ptr);
         
         unsafe {

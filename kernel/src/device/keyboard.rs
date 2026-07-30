@@ -154,6 +154,8 @@ impl ISR for KeyboardISR {
         let mut keyboard = KEYBOARD.lock();
 
         loop {
+            // The controller status flags indicate whether data is waiting
+            // and whether it originated from the keyboard or the PS/2 mouse.
             let status_byte = unsafe { keyboard.control_port.inb() };
             let status = KeyboardStatus::from_bits_truncate(status_byte);
 
@@ -162,6 +164,8 @@ impl ISR for KeyboardISR {
             }
 
             if status.contains(KeyboardStatus::AUXILIARY_DEVICE) {
+                // Port 0x60 is shared with the PS/2 mouse. Consume mouse bytes
+                // here so they are not interpreted as keyboard scancodes.
                 unsafe {
                     keyboard.data_port.inb();
                 }
@@ -181,6 +185,7 @@ pub fn plugin() {
     //todo!("Keyboard::plugin() not implemented yet!");
     IntVectors::register(InterruptVector::Keyboard, Box::new(KeyboardISR));
 
+    // IRQ 1 is initially masked by the PIC and must be explicitly enabled.
     let mut s = PIC.lock();
     s.allow(Irq::Keyboard);
 }
@@ -210,8 +215,11 @@ impl Keyboard {
             return None;
         }
 
+        // Reading port 0x60 removes the next scancode byte from the controller.
         let dp = &mut self.data_port;
-        let data = unsafe { dp.inb() };
+        let data = unsafe {
+            dp.inb()
+        };
 
         if self.decode_byte(data) {
             return Some(self.gather);

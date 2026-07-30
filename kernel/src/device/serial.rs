@@ -88,6 +88,8 @@ impl ComPort {
     /// Newlines are converted to CRLF because many terminals expect "\r\n"
     pub fn write_byte(&mut self, byte: u8) {
         //todo!("ComPort::write_byte() not implemented yet");
+
+        // Bit 5 of the line-status register indicates that the UART can accept another byte(?)
         const READY_TO_WRITE: u8 = 1 << 5;
 
         unsafe {
