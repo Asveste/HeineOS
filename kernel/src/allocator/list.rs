@@ -63,7 +63,7 @@ impl LinkedListAllocator {
         //todo!("list::init() is not implemented yet.")
         self.heap_start = heap_start;
         self.heap_end = heap_start.saturating_add(heap_size);
-        
+
         unsafe {
             self.add_free_block(heap_start, heap_size);
         }
@@ -74,14 +74,26 @@ impl LinkedListAllocator {
     /// of the free list.
     unsafe fn add_free_block(&mut self, addr: usize, size: usize) {
         //todo!("list::add_free_block() is not implemented yet.")
+
+        // A free block must be large enough to contain its own ListNode metadata.
+        // Its start address must also satisfy the alignment of ListNode.
         if size >= size_of::<ListNode>() && align_up(addr, align_of::<ListNode>()) == addr {
+
+            // Temporarily detach the previous first node.
+            // take moves the Option out without cloning or freeing the node.
             let old = self.head.next.take();
+
+            // The beginning of the free memory becomes the new list node.
             let new_node_ptr = addr as *mut ListNode;
             
             unsafe {
+                // Construct the node directly inside the free block.
                 new_node_ptr.write(ListNode::new(size));
+
+                // The allocator owns this memory until the block is allocated again.
                 let new_node: &'static mut ListNode = &mut *new_node_ptr;
 
+                // Insert the new block at the front of the list.
                 new_node.next = old;
                 self.head.next = Some(new_node);
             }
@@ -91,17 +103,26 @@ impl LinkedListAllocator {
     /// Search a free block with the given size and alignment and remove it from the list.
     fn find_free_block(&mut self, size: usize, align: usize) -> Option<(&'static mut ListNode, usize)> {
         //todo!("list::find_free_block() is not implemented yet.")
+
+        // current refers to the link that owns the next candidate block.
+        // Starting at the dummy head means removing the first real node
+        // does not require a separate special case.
         let mut current = &mut self.head;
         
         while let Some(ref mut block) = current.next {
+            // Use the first block in which the allocation fits.
             if let Ok(alloc_start) = Self::check_block_for_alloc(block, size, align) {
+                // Save the candidate blocks successor before removing it.
                 let next = block.next.take();
+                // Detach the complete free block from the list
                 let free_block = current.next.take().unwrap();
-                
+
+                // Link the previous node directly to the removed blocks successor.
                 current.next = next;
 
                 return Some((free_block, alloc_start));
             } else {
+                // Move the mutable link cursor to the following list entry
                 current = current.next.as_mut().unwrap();
             }
         }
@@ -113,6 +134,9 @@ impl LinkedListAllocator {
     /// Returns the aligned allocation address on success.
     fn check_block_for_alloc(block: &ListNode, size: usize, align: usize) -> Result<usize,()> {
         //todo!("list::check_block_for_alloc() is not implemented yet.")
+
+        // The allocation may need to begin after the blocks actual start
+        // in order to satisfy the requested alignment.
         let alloc_start = align_up(block.start_addr(), align);
         let alloc_end = alloc_start.saturating_add(size);
 
@@ -156,6 +180,9 @@ impl LinkedListAllocator {
     /// remaining space into the free list.
     pub unsafe fn alloc(&mut self, layout: Layout) -> *mut u8 {
         //todo!("list::alloc() is not implemented yet.")
+
+        // Ensure every allocation has enough size and alignment to store
+        // a ListNode if the block is later returned to the free list
         let (size, align) = Self::size_align(layout);
         let block = self.find_free_block(size, align);
 
@@ -166,6 +193,7 @@ impl LinkedListAllocator {
         let (free_block, alloc_start) = block.unwrap();
 
         let alloc_end = alloc_start.saturating_add(size);
+        // Determine how much memory remains after the allocated range
         let excess_size = free_block.end_addr() - alloc_end;
 
         if excess_size > 0 {

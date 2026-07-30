@@ -32,8 +32,13 @@ impl BumpAllocator {
     /// Initialize the allocator and set the whole heap as unused.
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         //todo!("bump::init() is not implemented yet.")
+
+        // The heap range is half-open: heap_start is included,
+        // while heap_end points one byte past the usable memory.
         self.heap_start = heap_start;
         self.heap_end = heap_start + heap_size;
+        // next always points to the first byte that has not been allocated yet.
+        // Reinitializing the allocator discards all previous allocation state.
         self.next = heap_start;
         self.allocations = 0;
     }
@@ -53,10 +58,18 @@ impl BumpAllocator {
     /// Returns a null pointer if the allocation does not fit.
     pub unsafe fn alloc(&mut self, layout: Layout) -> *mut u8 {
         //todo!("bump::alloc() is not implemented yet.")
+
+        // The current cursor may not satisfy the requested alignment.
+        // Any skipped bytes become unused alignment padding.
         let alloc_start = align_up(self.next, layout.align());
+
+        // Saturating addition prevents an overflowing size from wrapping around
+        // and incorrectly appearing to lie inside the heap.
         let alloc_end = alloc_start.saturating_add(layout.size());
         
         if alloc_end <= self.heap_end {
+            // Only update the allocator state after confirming that the complete
+            // allocation fits into the heap.
             self.next = alloc_end;
             self.allocations += 1;
             alloc_start as *mut u8
@@ -65,7 +78,8 @@ impl BumpAllocator {
         }
     }
 
-    /// Deallocate memory (not supported by bump allocator).
+    /// Deallocate memory (not supported by bump allocator because no metadata is stored describing
+    /// previous allocations).
     /// Freed memory is therefore not reused.
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         //todo!("bump::dealloc() is not implemented yet.")
