@@ -144,6 +144,8 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
         }
     }
 
+    info!("Finished initialization.");
+
     /*
     // Read .txt file from Tar Archive
     let fs = tarfs::filesystem();
@@ -157,8 +159,6 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
     let text = core::str::from_utf8(&buffer[..bytes_read]).unwrap();
     println!("{}", text);
     */
-    // Bitmap Image Small Demo
-    
 
     // Actually Start Demo
     // Starts the menu forever

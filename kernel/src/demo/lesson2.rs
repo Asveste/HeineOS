@@ -214,6 +214,7 @@ pub fn heap_demo() {
 /// A demo that plays songs via the PC speaker.
 pub fn speaker_demo() {
     //todo!("lesson2::speaker_demo() is not implemented yet.")
+    println!("This demo cannot be exited. Please reboot the system to get back to the menu.");
     let mut speaker = SPEAKER.lock();
 
     // Telekom Jingle (not tested yet)

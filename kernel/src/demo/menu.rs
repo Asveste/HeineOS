@@ -10,6 +10,8 @@ use crate::device::pit::wait;
 use crate::device::terminal::terminal;
 use crate::library::bitmap;
 use crate::library::input::read_char;
+use crate::thread::scheduler::scheduler;
+use crate::thread::thread::Thread;
 
 /// Clear the terminal screen.
 ///
@@ -31,15 +33,17 @@ fn draw_menu() {
 
     terminal().lock().draw_bitmap_centered(&bm);
 
-    println!("Demo Menu:\n");
-    println!("1. Text Demo");
-    println!("2. Keyboard Demo");
-    println!("3. Heap Demo");
-    println!("4. PC Speaker Demo");
-    println!("5. Coroutine Demo");
-    println!("6. Thread Demo");
-    println!("7. Peanut-GB Demo");
-    println!("8. Picross Demo\n");
+    println!(" -----------");
+    println!(" |Demo Menu|");
+    println!(" -----------\n");
+    println!("  1. Text Demo");
+    println!("  2. Keyboard Demo");
+    println!("  3. Heap Demo");
+    println!("  4. PC Speaker Demo");
+    println!("  5. Coroutine Demo");
+    println!("  6. Thread Demo");
+    println!("  7. Peanut-GB Demo");
+    println!("  8. Picross Demo\n");
 
     print!("Select a demo by pressing one\n of the listed numbers: ");
 }
@@ -84,8 +88,10 @@ pub fn run() -> ! {
 
             '4' => {
                 clear_screen();
-                speaker_demo();
-                wait_for_any_key();
+                let one = Thread::new(speaker_demo);
+                scheduler().ready(one);
+                scheduler().schedule();
+                //wait_for_any_key();
             }
 
             '5' => {
@@ -110,7 +116,7 @@ pub fn run() -> ! {
                 clear_screen();
                 picross::run();
                 clear_screen();
-                wait_for_any_key();
+                //wait_for_any_key();
             }
 
             _ => {
