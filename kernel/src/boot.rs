@@ -23,6 +23,7 @@ use log::{debug, error, info};
 use tar_no_std::TarArchiveRef;
 use uefi::mem::memory_map::MemoryMapOwned;
 use crate::allocator::global::init_allocator;
+use crate::application::picross;
 use crate::consts::{heap_start, HEAP_SIZE};
 use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
@@ -61,6 +62,7 @@ mod interrupt;
 mod coroutine;
 mod thread;
 mod filesystem;
+pub mod application;
 
 unsafe extern "C" {
     fn load_gdt();
@@ -154,14 +156,9 @@ pub extern "C" fn main(multiboot_magic: u32, multiboot: &multiboot::BootInfo) ->
 
     let text = core::str::from_utf8(&buffer[..bytes_read]).unwrap();
     println!("{}", text);
-
-    // Bitmap Image Small Demo
-    let bm = bitmap::Bitmap::read_from_file("heine.bmp")
-        .expect("Failed to read bitmap file")
-        .expect("Invalid or unsupported bitmap");
-
-    terminal().lock().draw_bitmap_centered(&bm);
     */
+    // Bitmap Image Small Demo
+    
 
     // Actually Start Demo
     // Starts the menu forever

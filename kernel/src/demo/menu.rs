@@ -1,13 +1,14 @@
 /*
  * Menu for selecting and running the different kernel demos.
  */
-
+use crate::application::picross;
 use crate::demo::lesson1::{keyboard_demo, text_demo};
 use crate::demo::lesson2::{heap_demo, speaker_demo};
 use crate::demo::lesson4::{coroutine_demo, thread_demo};
 use crate::demo::lesson6::peanut_gb;
 use crate::device::pit::wait;
 use crate::device::terminal::terminal;
+use crate::library::bitmap;
 use crate::library::input::read_char;
 
 /// Clear the terminal screen.
@@ -22,7 +23,15 @@ fn clear_screen() {
 fn draw_menu() {
     clear_screen();
 
-    println!("Demo Menu:");
+    // Fanart by Lilith_Kiwi
+    // Source: https://www.artstation.com/artwork/8wJ4Nq
+    let bm = bitmap::Bitmap::read_from_file("kirby.bmp")
+        .expect("Failed to read bitmap file")
+        .expect("Invalid or unsupported bitmap");
+
+    terminal().lock().draw_bitmap_centered(&bm);
+
+    println!("Demo Menu:\n");
     println!("1. Text Demo");
     println!("2. Keyboard Demo");
     println!("3. Heap Demo");
@@ -32,7 +41,7 @@ fn draw_menu() {
     println!("7. Peanut-GB Demo");
     println!("8. Picross Demo\n");
 
-    print!("Select a demo by pressing one of the listed numbers: ");
+    print!("Select a demo by pressing one\n of the listed numbers: ");
 }
 
 /// Wait until the user presses any key.
@@ -52,7 +61,7 @@ pub fn run() -> ! {
 
         // Echo the selected character.
         print!("{}", selection);
-        wait(800);
+        wait(600);
 
         match selection {
             '1' => {
@@ -99,13 +108,14 @@ pub fn run() -> ! {
 
             '8' => {
                 clear_screen();
-                println!("NYI");
+                picross::run();
+                clear_screen();
                 wait_for_any_key();
             }
 
             _ => {
                 println!("Invalid selection.");
-                wait(400);
+                wait(300);
             }
         }
     }

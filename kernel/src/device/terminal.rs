@@ -6,13 +6,13 @@
  * License: GPLv3
  */
 
-use core::fmt;
-use core::fmt::Write;
-use crate::device::{font_8x8, framebuffer};
 use crate::device::framebuffer::Framebuffer;
+use crate::device::framebuffer;
+use crate::library::bitmap::Bitmap;
 use crate::library::once::Once;
 use crate::library::spinlock::Spinlock;
-use crate::library::bitmap::Bitmap;
+use core::fmt;
+use core::fmt::Write;
 
 /// Global terminal instance protected by a spinlock.
 /// This instance is initialized once during kernel startup.
