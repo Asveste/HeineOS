@@ -56,7 +56,7 @@ pub const LEVELS: [PicrossLevel; LEVEL_COUNT] = [
             "..........",
             "..........",
         ],
-        300,
+        600,
     ),
     PicrossLevel::new(
         "2A",
@@ -72,7 +72,7 @@ pub const LEVELS: [PicrossLevel; LEVEL_COUNT] = [
             "..##..##..",
             "..........",
         ],
-        300,
+        600,
     ),
     PicrossLevel::new(
         "3A",
@@ -88,6 +88,6 @@ pub const LEVELS: [PicrossLevel; LEVEL_COUNT] = [
             "..#....#..",
             "..........",
         ],
-        300,
+        600,
     ),
 ];

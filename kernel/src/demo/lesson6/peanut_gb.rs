@@ -254,10 +254,10 @@ pub fn play(rom_path: &str) {
             }
 
             let button = match event.scancode() {
-                Some(Scancode::Up) => Some(JoypadButton::Up),
-                Some(Scancode::Down) => Some(JoypadButton::Down),
-                Some(Scancode::Left) => Some(JoypadButton::Left),
-                Some(Scancode::Right) => Some(JoypadButton::Right),
+                Some(Scancode::W) => Some(JoypadButton::Up),
+                Some(Scancode::A) => Some(JoypadButton::Left),
+                Some(Scancode::S) => Some(JoypadButton::Down),
+                Some(Scancode::D) => Some(JoypadButton::Right),
 
                 Some(Scancode::J) => Some(JoypadButton::A),
                 Some(Scancode::K) => Some(JoypadButton::B),
