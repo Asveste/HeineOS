@@ -148,6 +148,19 @@ fn handle_playing_action(game: &mut PicrossGame, action: GameAction, now_ms: usi
 
         GameAction::CarveWithSpace | GameAction::CarveWithEnter => {
             game.carve_selected(now_ms);
+
+            // Least invasive way to also still render the last cell before completion.
+            // Though this can obviously be done more elegantly.
+            if game.screen == PicrossScreen::Completed {
+                // Temporarily draw the fully completed board.
+                game.screen = PicrossScreen::Playing;
+                renderer::draw(game, now_ms);
+
+                pit::wait(1000);
+
+                // The normal game loop will draw the completion screen next.
+                game.screen = PicrossScreen::Completed;
+            }
         }
 
         GameAction::ToggleMark => {

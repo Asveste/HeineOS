@@ -238,21 +238,32 @@ pub fn play(rom_path: &str) {
         gb_init_lcd(gb_ptr, lcd_draw_line as *const () as *const c_void);
     }
 
+    println!("Playing '{}'\n", rom_path);
+    println!("Up/Down/Left/Right = WASD");
+    println!("A = J, B = K");
+    println!("Start = Space");
+    println!("Select = Enter");
+    println!("Quit = ESC");
+
     loop {
         let frame_start = pit::system_time();
 
         while let Some(event) = keyboard_buffer().pop_key_event() {
+            if event.scancode() == Some(Scancode::Escape) && event.pressed() {
+                return;
+            }
+
             let button = match event.scancode() {
                 Some(Scancode::Up) => Some(JoypadButton::Up),
                 Some(Scancode::Down) => Some(JoypadButton::Down),
                 Some(Scancode::Left) => Some(JoypadButton::Left),
                 Some(Scancode::Right) => Some(JoypadButton::Right),
 
-                Some(Scancode::X) => Some(JoypadButton::A),
-                Some(Scancode::Y) => Some(JoypadButton::B),
+                Some(Scancode::J) => Some(JoypadButton::A),
+                Some(Scancode::K) => Some(JoypadButton::B),
 
-                Some(Scancode::Space) => Some(JoypadButton::Select),
-                Some(Scancode::Enter) => Some(JoypadButton::Start),
+                Some(Scancode::Enter) => Some(JoypadButton::Select),
+                Some(Scancode::Space) => Some(JoypadButton::Start),
 
                 _ => None,
             };
@@ -261,6 +272,7 @@ pub fn play(rom_path: &str) {
                 let mask = button as u8;
 
                 unsafe {
+                    // Each Game Boy button is represented by one bit in the joypad byte.
                     if event.pressed() {
                         // 0 means pressed
                         *joypad_ptr &= !mask;

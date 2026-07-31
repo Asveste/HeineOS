@@ -1,7 +1,7 @@
 /*
  * Main game state for Picross.
  */
-
+use crate::device::pit::wait;
 use super::board::{Board, CellState};
 use super::level::{PicrossLevel, LEVELS};
 use super::clues::Clues;

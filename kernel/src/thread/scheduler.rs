@@ -113,8 +113,8 @@ impl Scheduler {
 
         unsafe {
             // Switch to the next thread.
-            // `current` still contains the old thread we want to exit,
-            // while `state.active_thread` contains the next one.
+            // current still contains the old thread we want to exit,
+            // while state.active_thread contains the next one.
             //Thread::switch(current.as_mut(), state.active_thread.as_mut().unwrap().as_mut());
             Thread::switch(&mut *current_ptr, state.active_thread.as_mut().unwrap().as_mut());
         }
@@ -138,6 +138,7 @@ impl Scheduler {
     /// Yield the CPU and switch to the next thread in the ready queue.
     pub fn yield_cpu(&self) {
         //todo!("Scheduler::yield_cpu() is not implemented yet.");
+        
         // Queue operations may allocate or free linked-list nodes.
         // Switching while the allocator is already locked could deadlock if
         // scheduler code attempted another heap operation.

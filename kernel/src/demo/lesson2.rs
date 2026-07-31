@@ -217,7 +217,7 @@ pub fn speaker_demo() {
     println!("This demo cannot be exited. Please reboot the system to get back to the menu.");
     let mut speaker = SPEAKER.lock();
 
-    // Telekom Jingle (not tested yet)
+    // Telekom Jingle (I tried my best ok)
     speaker.play(523, 100);
     wait(50);
     speaker.play(523, 100);

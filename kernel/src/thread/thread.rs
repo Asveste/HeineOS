@@ -137,9 +137,9 @@ impl Thread {
         let stack_ptr = ptr::from_ref(&stack[stack.capacity() - 1]) as usize;
 
         // Create a new thread object
-        let mut thread = Box::new(
-            Thread { id: next_id(), stack, stack_ptr, entry }
-        );
+        let mut thread = Box::new(Thread {
+            id: next_id(), stack, stack_ptr, entry
+        });
 
         // Prepare the stack for the thread so it can be started via `thread_start()`
         thread.prepare_stack();
@@ -165,12 +165,10 @@ impl Thread {
         //todo!("Thread::switch() is not implemented yet.");
         unsafe {
             // Pass the address of the field into which assembly saves the current rsp.
-            let current_stack_ptr =
-                ptr::addr_of_mut!((*current).stack_ptr);
+            let current_stack_ptr = ptr::addr_of_mut!((*current).stack_ptr);
 
             // Copy the next saved stack address before entering assembly.
-            let next_stack =
-                (*next).stack_ptr;
+            let next_stack = (*next).stack_ptr;
 
             thread_switch(current_stack_ptr, next_stack);
         }
