@@ -211,17 +211,9 @@ impl Framebuffer {
         let bmp_height = bitmap.height() as usize;
 
         // Clip the bitmap to the framebuffer dimensions
-        let target_width = if x + bmp_width > self.width {
-            max(self.width - x, 0)
-        } else {
-            bmp_width
-        };
+        let target_width = bmp_width.min(self.width.saturating_sub(x));
 
-        let target_height = if y + bmp_height > self.height {
-            max(self.height - y, 0)
-        } else {
-            bmp_height
-        };
+        let target_height = bmp_height.min(self.height.saturating_sub(y));
 
         //todo!("framebuffer::draw_bitmap() is not yet implemented");
 

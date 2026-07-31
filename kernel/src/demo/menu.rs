@@ -22,16 +22,10 @@ fn clear_screen() {
 }
 
 /// Print all available demos.
-fn draw_menu() {
+fn draw_menu(bitmap: &bitmap::Bitmap) {
     clear_screen();
 
-    // Fanart by Lilith_Kiwi
-    // Source: https://www.artstation.com/artwork/8wJ4Nq
-    let bm = bitmap::Bitmap::read_from_file("kirby.bmp")
-        .expect("Failed to read bitmap file")
-        .expect("Invalid or unsupported bitmap");
-
-    terminal().lock().draw_bitmap_centered(&bm);
+    terminal().lock().draw_bitmap_centered(bitmap);
 
     println!(" -----------");
     println!(" |Demo Menu|");
@@ -58,14 +52,20 @@ fn wait_for_any_key() {
 
 /// Run the demo menu forever.
 pub fn run() -> ! {
+    // Fanart by Lilith_Kiwi
+    // Source: https://www.artstation.com/artwork/8wJ4Nq
+    let bm = bitmap::Bitmap::read_from_file("kirby.bmp")
+        .expect("Failed to read bitmap file")
+        .expect("Invalid or unsupported bitmap");
+    
     loop {
-        draw_menu();
+        draw_menu(&bm);
 
         let selection = read_char();
 
         // Echo the selected character.
         print!("{}", selection);
-        wait(600);
+        wait(500);
 
         match selection {
             '1' => {

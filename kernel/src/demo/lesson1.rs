@@ -39,9 +39,15 @@ pub fn keyboard_demo() {
     println!("Press keys on your keyboard. Press 'ESC' to exit the demo.\n");
 
     let key_buffer = keyboard::keyboard_buffer();
+    let mut bool = false;
 
     loop {
         let key = key_buffer.poll_key_event();
+
+        if !bool && key.scancode() == Some(Scancode::Two) && !key.pressed() {
+            bool = true;
+            continue;
+        }
 
         if key.pressed() && key.scancode() == Some(Scancode::Escape) {
             println!("Exiting demo.");
